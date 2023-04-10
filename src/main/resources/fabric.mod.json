@@ -21,9 +21,6 @@
   "entrypoints": {
     "main": [
       "com.lumaa.act.ActMod"
-    ],
-    "client": [
-      "com.lumaa.act.ActClientMod"
     ]
   },
   "mixins": [
