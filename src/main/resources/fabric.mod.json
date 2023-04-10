@@ -1,30 +1,30 @@
 {
   "schemaVersion": 1,
-  "id": "template",
+  "id": "act",
   "version": "${version}",
 
-  "name": "Template",
-  "description": "This is just a template. If you can read this, then the author might've forgotten the description of the mod.",
+  "name": "Act",
+  "description": "",
   "authors": [
     "LumaaDev"
   ],
   "contact": {
     "homepage": "https://lumaa.brebond.com/",
-    "sources": "https://github.com/lumaa-dev/LumaaTemplate",
-    "issues": "https://github.com/lumaa-dev/LumaaTemplate/issues"
+    "sources": "https://github.com/lumaa-dev/Act",
+    "issues": "https://github.com/lumaa-dev/Act/issues"
   },
 
   "license": "MIT",
-  "icon": "assets/template/icon.png",
+  "icon": "assets/act/icon.png",
 
   "environment": "*",
   "entrypoints": {
     "main": [
-      "com.lumaa.template.TemplateMod"
+      "com.lumaa.act.ActMod"
     ]
   },
   "mixins": [
-    "template.mixins.json"
+    "act.mixins.json"
   ],
 
   "depends": {
