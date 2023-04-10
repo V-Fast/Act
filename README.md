@@ -1,8 +1,3 @@
-<!--
-By default, the mod template is under the MIT License by default,
-you can change it as you want.
--->
-
 <center><div align="center">
 
 # Act
@@ -19,8 +14,21 @@ you can change it as you want.
 </div></center>
 
 ## Description
+Create NPCs using the `/npc [Player Name]` command.
 
-This repository was made for Lumaa to start up a Minecraft [Fabric](https://fabricmc.net) mod project quickly.
+## Have the mod yourself
+To get the mod, you have to build the mod using [git](https://git-scm.com/downloads).  
+After you installed git, create a new directory and open a command prompt in that directory then type `git clone https://github.com/lumaa-dev/Act.git`.  
+
+Once done, type in the command prompt the following lines in order:
+- `cd ./Act-master`
+- `chmod +x ./gradlew` - Allows the access to the `gradlew` file
+- `./gradlew build`. - Builds the .jar file
+
+Once the loading is done:
+- Find the mod in *Act-master/build/libs/act-[VERSION].jar*
+- Copy and paste in *.minecraft/mods*
+- Install the latest version of [Fabric API](https://modrinth.com/mod/fabric-api)
 
 ## License
 This mod is under the [MIT License](/LICENSE).
