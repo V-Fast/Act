@@ -35,7 +35,6 @@ public class NpcCommand {
     public static final String name = "npc";
 
     public int onRun(CommandContext<ServerCommandSource> command, String username) {
-        ActMod.print(username);
         UUID uuid = lookForPlayer(username);
 
         ServerCommandSource source = command.getSource();
@@ -50,7 +49,7 @@ public class NpcCommand {
         }
 
         npcEntity.teleport(pos.getX(), pos.getY(), pos.getZ());
-        source.sendMessage(Text.literal("Spawned PatateGivree"));
+        source.sendMessage(Text.literal("Spawned " + username));
         return 1;
     }
 
@@ -87,7 +86,6 @@ public class NpcCommand {
                 throw new Exception("No players has been found using the username: " + arg);
             }
 
-            ActMod.print(response.toString());
             return UUID.fromString(formatUuid(response.toString()));
         } catch (Exception e) {
             return UUID.fromString("126568cd-e663-4b8d-a8d9-700403409bd5");
