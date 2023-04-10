@@ -1,0 +1,78 @@
+plugins {
+	id 'fabric-loom' version '1.1-SNAPSHOT'
+	id 'maven-publish'
+
+	// Modrinth
+	id "com.modrinth.minotaur" version "2.+"
+}
+
+sourceCompatibility = JavaVersion.VERSION_17
+targetCompatibility = JavaVersion.VERSION_17
+
+archivesBaseName = project.archives_base_name
+version = project.mod_version
+group = project.maven_group
+
+dependencies {
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+
+	// Fabric API
+	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+	
+	// LibuLib - Optional
+	// modImplementation "com.github.lumaa-dev:LibuLib:1.2.1"
+}
+
+processResources {
+	inputs.property "version", project.version
+
+	filesMatching("fabric.mod.json") {
+		expand "version": project.version
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.release = 17
+}
+
+tasks.modrinth.dependsOn(tasks.modrinthSyncBody)
+
+java {
+	withSourcesJar()
+}
+
+jar {
+	from("LICENSE") {
+		rename { "${it}_${project.archivesBaseName}"}
+	}
+}
+
+publishing {
+	publications {
+		mavenJava(MavenPublication) {
+			from components.java
+		}
+	}
+}
+
+modrinth {
+	token = System.getenv("MODRINTH_TOKEN") // modrinth token
+	projectId = "" // slug or id
+	versionNumber = project.version // will fail if it already exists
+	versionType = "" // "alpha" "beta" or "release"
+	uploadFile = remapJar // loom = "remapJar" (else "jar")
+	gameVersions = ["1.19.4"] // array
+	loaders = ["fabric"]
+	dependencies {
+		// scope.type
+		// The scope can be `required`, `optional`, `incompatible`, or `embedded`
+		// The type can either be `project` or `version`
+		required.project "fabric-api" // Creates a new required dependency on Fabric API
+		optional.version "sodium", "mc1.19.3-0.4.8" // Creates a new optional dependency on this specific version of Sodium
+	}
+
+	// synchronise description with README.md
+	syncBodyFrom = rootProject.file("README.md").text
+}
