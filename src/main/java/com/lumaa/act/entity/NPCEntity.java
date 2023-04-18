@@ -1,9 +1,10 @@
-package com.lumaa.act.util;
+package com.lumaa.act.entity;
 
 import com.lumaa.act.packet.NPCPackets;
 import com.mojang.authlib.GameProfile;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
+import net.minecraft.client.render.entity.PlayerModelPart;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.ClientConnection;
@@ -16,8 +17,6 @@ import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
 import net.minecraft.util.math.MathHelper;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,13 +27,41 @@ public class NPCEntity extends ServerPlayerEntity {
         super(server, world, profile);
         this.gameProfile = profile;
         this.networkHandler =  new ServerPlayNetworkHandler(world.getServer(), new ClientConnection(NetworkSide.CLIENTBOUND), this);
+        this.writeToSpawnPacket();
+        this.sendProfileUpdatePacket();
+        this.setHealth(1f);
+        setAllPartsVisible(true);
     }
 
     @Override
     public void tick() {
         this.closeHandledScreen();
         super.tick();
+        this.tickFallStartPos();
         this.playerTick();
+    }
+
+    public void setAllPartsVisible(boolean visible) {
+        setVisiblePart(PlayerModelPart.CAPE, visible);
+        setVisiblePart(PlayerModelPart.HAT, visible);
+        setVisiblePart(PlayerModelPart.JACKET, visible);
+        setVisiblePart(PlayerModelPart.LEFT_PANTS_LEG, visible);
+        setVisiblePart(PlayerModelPart.LEFT_SLEEVE, visible);
+        setVisiblePart(PlayerModelPart.RIGHT_PANTS_LEG, visible);
+        setVisiblePart(PlayerModelPart.RIGHT_SLEEVE, visible);
+    }
+
+    public void setVisiblePart(PlayerModelPart modelPart, boolean visible) {
+        int byt = this.getDataTracker().get(PLAYER_MODEL_PARTS);
+
+        byte newByt;
+        if (visible) {
+            newByt = (byte) (byt + modelPart.getBitFlag());
+        } else {
+            newByt = (byte) (modelPart.getBitFlag() - byt);
+        }
+
+        this.dataTracker.set(PLAYER_MODEL_PARTS, newByt);
     }
 
     public void setInHand(ItemStack itemStack) {
@@ -46,23 +73,11 @@ public class NPCEntity extends ServerPlayerEntity {
         this.getInventory().selectedSlot = MathHelper.clamp(hotbar, 0, 9);
     }
 
-    public void attack() {
-        PlayerInventory inv = this.getInventory();
-        ItemStack mainStack = inv.getMainHandStack();
-        ItemStack offStack = inv.getStack(PlayerInventory.OFF_HAND_SLOT);
+    public void copyInventoryFrom(PlayerInventory playerInventory) {
+        PlayerInventory npcInventory = this.getInventory();
 
-        ActionResult result;
-        if (!mainStack.isEmpty()) {
-            result = this.interactionManager.interactItem(this, this.getWorld(), mainStack, Hand.MAIN_HAND);
-        } else if (!offStack.isEmpty()) {
-            result = this.interactionManager.interactItem(this, this.getWorld(), offStack, Hand.OFF_HAND);
-        } else {
-            return;
-        }
-
-        assert result != null;
-        if (result.shouldSwingHand()) {
-            this.swingHand(Hand.MAIN_HAND);
+        for (int i = 0; i < playerInventory.size(); i++) {
+            npcInventory.setStack(i, playerInventory.getStack(i));
         }
     }
 
@@ -70,9 +85,10 @@ public class NPCEntity extends ServerPlayerEntity {
         this.gameProfile = gameProfile;
     }
 
-    protected void writeToSpawnPacket(PacketByteBuf buf) {
+    protected void writeToSpawnPacket() {
+        PacketByteBuf buf = PacketByteBufs.create();
         buf.writeVarInt(this.getId());
-        buf.writeUuid(this.getUuid());
+        buf.writeUuid(this.gameProfile.getId());
         buf.writeVarInt(Registries.ENTITY_TYPE.getRawId(this.getType()));
         buf.writeString(this.getGameProfile().getName());
         buf.writeDouble(this.getX());
