@@ -59,9 +59,9 @@ publishing {
 
 modrinth {
 	token = System.getenv("MODRINTH_TOKEN") // modrinth token
-	projectId = "" // slug or id
+	projectId = "acts" // slug or id
 	versionNumber = project.version // will fail if it already exists
-	versionType = "" // "alpha" "beta" or "release"
+	versionType = "beta" // "alpha" "beta" or "release"
 	uploadFile = remapJar // loom = "remapJar" (else "jar")
 	gameVersions = ["1.19.4"] // array
 	loaders = ["fabric"]
@@ -70,7 +70,6 @@ modrinth {
 		// The scope can be `required`, `optional`, `incompatible`, or `embedded`
 		// The type can either be `project` or `version`
 		required.project "fabric-api" // Creates a new required dependency on Fabric API
-		optional.version "sodium", "mc1.19.3-0.4.8" // Creates a new optional dependency on this specific version of Sodium
 	}
 
 	// synchronise description with README.md
