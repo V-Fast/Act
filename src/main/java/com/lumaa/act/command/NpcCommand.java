@@ -1,20 +1,11 @@
 package com.lumaa.act.command;
 
-import com.lumaa.act.ActMod;
-import com.lumaa.act.util.NPCEntity;
+import com.lumaa.act.entity.NPCEntity;
 import com.mojang.authlib.GameProfile;
-import com.mojang.brigadier.LiteralMessage;
-import com.mojang.brigadier.arguments.IntegerArgumentType;
-import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
-import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.command.argument.MessageArgumentType;
-import net.minecraft.command.argument.serialize.IntegerArgumentSerializer;
-import net.minecraft.command.argument.serialize.StringArgumentSerializer;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.packet.s2c.play.PlayerListS2CPacket;
 import net.minecraft.server.command.CommandManager;
@@ -42,9 +33,11 @@ public class NpcCommand {
         NPCEntity npcEntity = new NPCEntity(source.getServer(), source.getWorld(), new GameProfile(uuid, username));
 
         source.getWorld().spawnEntity(npcEntity);
+
         List<PlayerEntity> players = command.getSource().getWorld().getPlayers().stream().filter(serverPlayerEntity -> serverPlayerEntity.getClass() == ServerPlayerEntity.class).collect(Collectors.toList());
 
         for (PlayerEntity p : players) {
+            ((ServerPlayerEntity) p).networkHandler.sendPacket(npcEntity.createSpawnPacket());
             ((ServerPlayerEntity) p).networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.ADD_PLAYER, npcEntity));
         }
 
@@ -82,13 +75,13 @@ public class NpcCommand {
             }
             in.close();
 
-            if (response.toString() == "Player not found !") {
+            if (response.toString() == "Player not found !") { // api string
                 throw new Exception("No players has been found using the username: " + arg);
             }
 
             return UUID.fromString(formatUuid(response.toString()));
         } catch (Exception e) {
-            return UUID.fromString("126568cd-e663-4b8d-a8d9-700403409bd5");
+            return UUID.randomUUID();
             // do literally nothing about it lmao
         }
     }
