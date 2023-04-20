@@ -1,18 +1,13 @@
-<center><div align="center">
-
 # Act
 <sup>Act as if you had friends... But you are in a singleplayer world.</sup>
 
-<!-- Put a showcase image if you can/want -->
+<!-- image later -->
 
-<img src="https://raw.githubusercontent.com/lumaa-dev/lumaa-dev/main/assets/fabric-banner.png" width=600>
+[![Only available on Modrinth](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/available/modrinth_64h.png)](https://modrinth.com/mod/acts)
+[![Requires Fabric API](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/requires/fabric-api_64h.png)](https://modrinth.com/mod/fabric-api)
+![Won't Support Forge](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/unsupported/forge_64h.png)  
+[![Support Discord](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/compact/social/discord-singular_46h.png)](https://discord.gg/Rqpn3C7yR5)
 
-<a href="https://github.com/lumaa-dev/Act"><img src="https://raw.githubusercontent.com/lumaa-dev/art/main/badges/star_github.png" width=150></a>
-<a href="https://modrinth.com/mod/acts"><img src="https://raw.githubusercontent.com/lumaa-dev/art/main/badges/only_modrinth.png" width=150></a>
-<a href="https://discord.gg/Rqpn3C7yR5"><img src="https://raw.githubusercontent.com/lumaa-dev/art/main/badges/support_discord.png" width=150></a>
-<a href="https://docs.google.com/spreadsheets/d/1zrBJshX48qSnxicYFW-AIy_CmrKOT0d91QpU24vDvdQ/edit?usp=sharing"><img src="https://raw.githubusercontent.com/lumaa-dev/art/main/badges/modrinth_stats.png" width=150></a>
-
-</div></center>
 
 ## Description
 Create NPCs (also called "Actors") using the `/npc [Player Name]` command. This will change in the future.
@@ -42,7 +37,3 @@ Once the loading is done:
 - NPC entity does not have knockback when damaged by entity or player
 - `/npc` "*ign*" parameter is not case sensitive
 
-<!-- modrinth_exclude.start -->
-## License
-This mod is under the [MIT License](/LICENSE).
-<!-- modrinth_exclude.end -->
