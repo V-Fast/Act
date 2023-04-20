@@ -1,6 +1,6 @@
 package com.lumaa.act;
 
-import com.lumaa.act.command.NpcCommand;
+import com.lumaa.act.command.ActorCommand;
 import net.fabricmc.api.ModInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,7 +9,7 @@ public class ActMod implements ModInitializer {
     public static final String MODID = "act";
     public static final Logger logger = LoggerFactory.getLogger(MODID);
 
-    NpcCommand npc = new NpcCommand();
+    ActorCommand npc = new ActorCommand();
 
     @Override
     public void onInitialize() {
