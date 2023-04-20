@@ -1,6 +1,6 @@
 package com.lumaa.act.entity;
 
-import com.lumaa.act.packet.NPCPackets;
+import com.lumaa.act.packet.ActorPackets;
 import com.mojang.authlib.GameProfile;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
@@ -18,12 +18,14 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
-public class NPCEntity extends ServerPlayerEntity {
+public class ActorEntity extends ServerPlayerEntity {
     public GameProfile gameProfile;
+    public MovementState movementState = MovementState.STAND;
 
-    public NPCEntity(MinecraftServer server, ServerWorld world, GameProfile profile) {
+    public ActorEntity(MinecraftServer server, ServerWorld world, GameProfile profile) {
         super(server, world, profile);
         this.gameProfile = profile;
         this.networkHandler =  new ServerPlayNetworkHandler(world.getServer(), new ClientConnection(NetworkSide.CLIENTBOUND), this);
@@ -105,7 +107,7 @@ public class NPCEntity extends ServerPlayerEntity {
         buf.writeVarInt(this.getId());
         writeProfile(buf, this.getGameProfile());
 
-        CustomPayloadS2CPacket packet = new CustomPayloadS2CPacket(NPCPackets.SET_GAMEPROFILE, buf);
+        CustomPayloadS2CPacket packet = new CustomPayloadS2CPacket(ActorPackets.SET_GAMEPROFILE, buf);
 
         for (ServerPlayerEntity e : PlayerLookup.tracking(this)) {
             e.networkHandler.sendPacket(packet);
@@ -139,5 +141,11 @@ public class NPCEntity extends ServerPlayerEntity {
     @Override
     public GameProfile getGameProfile() {
         return gameProfile;
+    }
+
+    public enum MovementState {
+        STAND,
+        WALK,
+        RUN,
     }
 }

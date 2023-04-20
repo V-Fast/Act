@@ -1,6 +1,6 @@
 package com.lumaa.act.command;
 
-import com.lumaa.act.entity.NPCEntity;
+import com.lumaa.act.entity.ActorEntity;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
@@ -22,15 +22,15 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-public class NpcCommand {
-    public static final String name = "npc";
+public class ActorCommand {
+    public static final String name = "actor";
 
     public int onRun(CommandContext<ServerCommandSource> command, String username) {
         UUID uuid = lookForPlayer(username);
 
         ServerCommandSource source = command.getSource();
         Vec3d pos = source.getPosition();
-        NPCEntity npcEntity = new NPCEntity(source.getServer(), source.getWorld(), new GameProfile(uuid, username));
+        ActorEntity npcEntity = new ActorEntity(source.getServer(), source.getWorld(), new GameProfile(uuid, username));
 
         source.getWorld().spawnEntity(npcEntity);
 
@@ -58,7 +58,7 @@ public class NpcCommand {
     }
 
     public String getName() {
-        return NpcCommand.name;
+        return ActorCommand.name;
     }
 
     public UUID lookForPlayer(String arg) {
