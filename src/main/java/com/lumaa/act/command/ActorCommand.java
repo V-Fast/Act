@@ -6,7 +6,6 @@ import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.command.argument.MessageArgumentType;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.packet.s2c.play.PlayerListS2CPacket;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
@@ -20,7 +19,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 public class ActorCommand {
     public static final String name = "actor";
@@ -32,10 +30,10 @@ public class ActorCommand {
         Vec3d pos = source.getPosition();
         ActorEntity npcEntity = new ActorEntity(source.getServer(), source.getWorld(), new GameProfile(uuid, username));
 
-        List<PlayerEntity> players = command.getSource().getWorld().getPlayers().stream().filter(serverPlayerEntity -> serverPlayerEntity.getClass() == ServerPlayerEntity.class).collect(Collectors.toList());
-        for (PlayerEntity p : players) {
-            ((ServerPlayerEntity) p).networkHandler.sendPacket(npcEntity.createSpawnPacket());
-            ((ServerPlayerEntity) p).networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.ADD_PLAYER, npcEntity));
+        List<ServerPlayerEntity> players = command.getSource().getWorld().getPlayers().stream().filter(serverPlayerEntity -> serverPlayerEntity.getClass() == ServerPlayerEntity.class).toList();
+        for (ServerPlayerEntity p : players) {
+            p.networkHandler.sendPacket(npcEntity.createSpawnPacket());
+            p.networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.ADD_PLAYER, npcEntity));
         }
 
         source.getWorld().spawnEntity(npcEntity);
@@ -43,7 +41,6 @@ public class ActorCommand {
         ServerCommandSource s = command.getSource();
         npcEntity.teleport(s.getWorld(), pos.getX(), pos.getY(), pos.getZ(), (s.getEntity() != null) ? s.getEntity().getYaw() : 0, (s.getEntity() != null) ? s.getEntity().getPitch() : 0);
         source.sendMessage(Text.literal("Spawned " + username));
-        //npcEntity.walkTo(pos);
         return 1;
     }
 

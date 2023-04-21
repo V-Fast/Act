@@ -1,15 +1,12 @@
 package com.lumaa.act.entity;
 
-import com.lumaa.act.ActMod;
+import com.lumaa.act.ai.ActorAI;
 import com.lumaa.act.packet.ActorPackets;
-import com.lumaa.libu.LibuLibClient;
 import com.lumaa.libu.util.Geometry;
-import com.lumaa.libu.util.MinecraftGeometry;
 import com.mojang.authlib.GameProfile;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.minecraft.client.render.entity.PlayerModelPart;
-import net.minecraft.command.argument.EntityAnchorArgumentType;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.ClientConnection;
@@ -31,6 +28,7 @@ public class ActorEntity extends ServerPlayerEntity {
     public GameProfile gameProfile;
     public MovementState movementState = MovementState.STAND;
     private Vec3d moveGoal;
+    private ActorAI ai;
 
     public ActorEntity(MinecraftServer server, ServerWorld world, GameProfile profile) {
         super(server, world, profile);
@@ -91,16 +89,7 @@ public class ActorEntity extends ServerPlayerEntity {
         }
     }
 
-    private void forward(double l) {
-//        double v = this.getYaw() - 180d;
-//        double i = v / 180;
-//
-//        ActMod.print("yaw = " + this.getYaw());
-//        ActMod.print("v = " + v);
-//        ActMod.print("i = " + i);
-//        ActMod.print("l = " + l * i);
-//        this.setVelocity(MathHelper.clamp(l * i, -l, l), 0d, 0d);
-
+    public void actorMove() {
 
     }
 
@@ -114,29 +103,6 @@ public class ActorEntity extends ServerPlayerEntity {
 
     public void teleport(Vec3d movement) {
         teleport(new BlockPos((int) movement.x, (int) movement.y, (int) movement.z));
-    }
-
-    private void actorMove() {
-        if (this.movementState == MovementState.STAND || this.moveGoal == null) { return; }
-        if (this.getPos() == this.moveGoal) {
-            this.movementState = MovementState.STAND;
-            this.moveGoal = null;
-        } else {
-            this.lookAt(EntityAnchorArgumentType.EntityAnchor.FEET, moveGoal);
-
-            double l = 0d;
-            switch (movementState) {
-                case WALK -> l = 0.2d;
-                case RUN -> l = 0.4d;
-                case CRAWL -> l = 0.05d;
-                case STAND -> {
-                    return;
-                }
-            }
-
-            assert l == 0d;
-            forward(l);
-        }
     }
 
     private void moveTo(MovementState state, Vec3d goal) {
