@@ -32,18 +32,18 @@ public class ActorCommand {
         Vec3d pos = source.getPosition();
         ActorEntity npcEntity = new ActorEntity(source.getServer(), source.getWorld(), new GameProfile(uuid, username));
 
-        source.getWorld().spawnEntity(npcEntity);
-
         List<PlayerEntity> players = command.getSource().getWorld().getPlayers().stream().filter(serverPlayerEntity -> serverPlayerEntity.getClass() == ServerPlayerEntity.class).collect(Collectors.toList());
-
         for (PlayerEntity p : players) {
             ((ServerPlayerEntity) p).networkHandler.sendPacket(npcEntity.createSpawnPacket());
             ((ServerPlayerEntity) p).networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.ADD_PLAYER, npcEntity));
         }
 
+        source.getWorld().spawnEntity(npcEntity);
+
         ServerCommandSource s = command.getSource();
-        npcEntity.teleport(s.getWorld(), s.getPosition().getX(), s.getPosition().getY(), s.getPosition().getZ(), (s.getEntity() != null) ? s.getEntity().getYaw() : 0, (s.getEntity() != null) ? s.getEntity().getPitch() : 0);
+        npcEntity.teleport(s.getWorld(), pos.getX(), pos.getY(), pos.getZ(), (s.getEntity() != null) ? s.getEntity().getYaw() : 0, (s.getEntity() != null) ? s.getEntity().getPitch() : 0);
         source.sendMessage(Text.literal("Spawned " + username));
+        //npcEntity.walkTo(pos);
         return 1;
     }
 
