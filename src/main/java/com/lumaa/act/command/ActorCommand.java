@@ -41,7 +41,8 @@ public class ActorCommand {
             ((ServerPlayerEntity) p).networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.ADD_PLAYER, npcEntity));
         }
 
-        npcEntity.teleport(pos.getX(), pos.getY(), pos.getZ());
+        ServerCommandSource s = command.getSource();
+        npcEntity.teleport(s.getWorld(), s.getPosition().getX(), s.getPosition().getY(), s.getPosition().getZ(), (s.getEntity() != null) ? s.getEntity().getYaw() : 0, (s.getEntity() != null) ? s.getEntity().getPitch() : 0);
         source.sendMessage(Text.literal("Spawned " + username));
         return 1;
     }
