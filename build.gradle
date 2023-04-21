@@ -79,15 +79,13 @@ modrinth {
 	token = System.getenv("MODRINTH_TOKEN") // modrinth token
 	projectId = "acts" // slug or id
 	versionNumber = project.version // will fail if it already exists
-	versionType = "beta" // "alpha" "beta" or "release"
+	versionType = "release" // "alpha" "beta" or "release"
 	uploadFile = remapJar // loom = "remapJar" (else "jar")
 	gameVersions = ["1.19.4"] // array
 	loaders = ["fabric"]
 	dependencies {
-		// scope.type
-		// The scope can be `required`, `optional`, `incompatible`, or `embedded`
-		// The type can either be `project` or `version`
-		required.project "fabric-api" // Creates a new required dependency on Fabric API
+		required.project "fabric-api"
+		required.project "libu"
 	}
 
 	// synchronise description with README.md
