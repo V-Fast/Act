@@ -18,7 +18,6 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
 public class ActorEntity extends ServerPlayerEntity {
@@ -31,7 +30,7 @@ public class ActorEntity extends ServerPlayerEntity {
         this.networkHandler =  new ServerPlayNetworkHandler(world.getServer(), new ClientConnection(NetworkSide.CLIENTBOUND), this);
         this.writeToSpawnPacket();
         this.sendProfileUpdatePacket();
-        this.setHealth(1f);
+        this.setHealth(20f);
         setAllPartsVisible(true);
     }
 
@@ -146,6 +145,7 @@ public class ActorEntity extends ServerPlayerEntity {
     public enum MovementState {
         STAND,
         WALK,
+        SNEAK,
         RUN,
     }
 }
