@@ -1,10 +1,15 @@
 package com.lumaa.act.entity;
 
+import com.lumaa.act.ActMod;
 import com.lumaa.act.packet.ActorPackets;
+import com.lumaa.libu.LibuLibClient;
+import com.lumaa.libu.util.Geometry;
+import com.lumaa.libu.util.MinecraftGeometry;
 import com.mojang.authlib.GameProfile;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.minecraft.client.render.entity.PlayerModelPart;
+import net.minecraft.command.argument.EntityAnchorArgumentType;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.ClientConnection;
@@ -17,12 +22,15 @@ import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.Nullable;
 
 public class ActorEntity extends ServerPlayerEntity {
     public GameProfile gameProfile;
     public MovementState movementState = MovementState.STAND;
+    private Vec3d moveGoal;
 
     public ActorEntity(MinecraftServer server, ServerWorld world, GameProfile profile) {
         super(server, world, profile);
@@ -40,6 +48,7 @@ public class ActorEntity extends ServerPlayerEntity {
         super.tick();
         this.tickFallStartPos();
         this.playerTick();
+        this.actorMove();
     }
 
     public void setAllPartsVisible(boolean visible) {
@@ -80,6 +89,83 @@ public class ActorEntity extends ServerPlayerEntity {
         for (int i = 0; i < playerInventory.size(); i++) {
             npcInventory.setStack(i, playerInventory.getStack(i));
         }
+    }
+
+    private void forward(double l) {
+//        double v = this.getYaw() - 180d;
+//        double i = v / 180;
+//
+//        ActMod.print("yaw = " + this.getYaw());
+//        ActMod.print("v = " + v);
+//        ActMod.print("i = " + i);
+//        ActMod.print("l = " + l * i);
+//        this.setVelocity(MathHelper.clamp(l * i, -l, l), 0d, 0d);
+
+
+    }
+
+    public void teleport(ServerWorld world, BlockPos pos) {
+        teleport(world, pos.getX() + 0.5d, pos.getY(), pos.getZ() + 0.5d, 0, 0);
+    }
+
+    public void teleport(BlockPos pos) {
+        teleport(this.getWorld().toServerWorld(), pos.getX() + 0.5d, pos.getY(), pos.getZ() + 0.5d, 0, 0);
+    }
+
+    public void teleport(Vec3d movement) {
+        teleport(new BlockPos((int) movement.x, (int) movement.y, (int) movement.z));
+    }
+
+    private void actorMove() {
+        if (this.movementState == MovementState.STAND || this.moveGoal == null) { return; }
+        if (this.getPos() == this.moveGoal) {
+            this.movementState = MovementState.STAND;
+            this.moveGoal = null;
+        } else {
+            this.lookAt(EntityAnchorArgumentType.EntityAnchor.FEET, moveGoal);
+
+            double l = 0d;
+            switch (movementState) {
+                case WALK -> l = 0.2d;
+                case RUN -> l = 0.4d;
+                case CRAWL -> l = 0.05d;
+                case STAND -> {
+                    return;
+                }
+            }
+
+            assert l == 0d;
+            forward(l);
+        }
+    }
+
+    private void moveTo(MovementState state, Vec3d goal) {
+        movementState = state;
+        moveGoal = goal;
+    }
+
+    public void walkTo(Vec3d movement) {
+        moveTo(MovementState.WALK, movement);
+    }
+
+    public void walkTo(Geometry.Coordinate coordinate) {
+        walkTo(new Vec3d(coordinate.getX() + 0.5d, coordinate.getY(), coordinate.getZ() + 0.5d));
+    }
+
+    public void walkTo(BlockPos blockPos) {
+        walkTo(new Vec3d(blockPos.getX() + 0.5d, blockPos.getY(), blockPos.getZ() + 0.5d));
+    }
+
+    public void runTo(Vec3d movement) {
+        moveTo(MovementState.RUN, movement);
+    }
+
+    public void runTo(Geometry.Coordinate coordinate) {
+        runTo(new Vec3d(coordinate.getX() + 0.5d, coordinate.getY(), coordinate.getZ() + 0.5d));
+    }
+
+    public void runTo(BlockPos blockPos) {
+        runTo(new Vec3d(blockPos.getX() + 0.5d, blockPos.getY(), blockPos.getZ() + 0.5d));
     }
 
     public void setGameProfile(GameProfile gameProfile) {
@@ -147,5 +233,6 @@ public class ActorEntity extends ServerPlayerEntity {
         WALK,
         SNEAK,
         RUN,
+        CRAWL
     }
 }
