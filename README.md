@@ -10,7 +10,8 @@
 
 
 ## Description
-Create NPCs (also called "Actors") using the `/npc [Player Name]` command. This will change in the future.
+Create NPCs (also called "Actors") using the `/npc [Player Name]` command. This will maybe change in the future.\
+Actors can follow you if you right-click using the **Follow Stick**. You can make them stop
 
 ## How can Act be used?
 Act can be used to feel less lonely (this depends on people), take screenshots with persons you could never take screenshots with! Or just have fancy statues.
@@ -18,7 +19,7 @@ Act can be used to feel less lonely (this depends on people), take screenshots w
 In the future, Actors will be able to move using a user-defined path. or defend players from mobs!
 
 ## Build
-To build the mod, you need to have [git](https://git-scm.com/downloads).  
+To build the mod, you need to have [git](https://git-scm.com/downloads).\
 After you installed git, create a new directory and open a command prompt in that directory then type `git clone https://github.com/lumaa-dev/Act.git`.  
 
 Once done, type in the command prompt the following lines in order:
@@ -32,7 +33,6 @@ Once the loading is done:
 - Install the latest version of [Fabric API](https://modrinth.com/mod/fabric-api)
 
 ## Known Bugs
-- NPC entity only appears after a death event
 - NPC entities do not save
 - NPC entity does not have knockback when damaged by entity or player
 - `/npc` "*ign*" parameter is not case sensitive
