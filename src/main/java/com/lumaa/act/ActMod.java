@@ -18,7 +18,7 @@ public class ActMod implements ModInitializer {
         ActItems.registerModItems();
 
         // print mod motto
-        print("Act as if you had friends... But you are in a singleplayer world.");
+        print("Actors are on stage");
     }
 
     public static void print(String message) {
