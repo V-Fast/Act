@@ -35,5 +35,5 @@ Once the loading is done:
 ## Known Bugs
 - NPC entities do not save
 - NPC entity does not have knockback when damaged by entity or player
-- `/npc` "*ign*" parameter is not case sensitive
+- `/npc` "*ign*" parameter is not case-sensitive
 
