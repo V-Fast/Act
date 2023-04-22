@@ -1,24 +1,102 @@
 package com.lumaa.act.ai;
 
 import com.lumaa.act.entity.ActorEntity;
+import net.minecraft.command.argument.EntityAnchorArgumentType;
+import net.minecraft.util.math.Vec3d;
 
 public class ActorMovement implements IMovement {
     protected ActorEntity actor;
-    private static final double runSpeed = 0.3;
-    private static final double walkSpeed = 0.2;
-    private static final double slowSpeed = 0.1;
+    private static final double runSpeed = 0.15;
+    private static final double walkSpeed = 0.1;
+    private static final double sneakSpeed = 0.035;
+    private static final double crawlSpeed = 0.035;
+    public MovementState movementState;
+    public Vec3d goal;
+
+    public ActorMovement(ActorEntity actor) {
+        this.actor = actor;
+        this.movementState = MovementState.STAND;
+    }
+
+    private float calibrate(boolean zAxis) {
+        if (zAxis) {
+            return Math.abs(actor.headYaw) / 90 - 1;
+        } else {
+            return (float) (2 / Math.PI * (Math.asin(Math.sin(this.actor.headYaw / 180 * Math.PI))));
+        }
+    }
+
+    public boolean isStanding() {
+        return this.movementState == MovementState.STAND;
+    }
+
+    public boolean isWalking() {
+        return this.movementState == MovementState.WALK;
+    }
+
+    public boolean isRunning() {
+        return this.movementState == MovementState.RUN;
+    }
+
+    public boolean isSneaking() {
+        return this.movementState == MovementState.SNEAK;
+    }
+
+    public boolean isCrawling() {
+        return this.movementState == MovementState.CRAWL;
+    }
+
+    public double getMovementSpeed() {
+        if (isWalking()) {
+            return walkSpeed;
+        } else if (isRunning()) {
+            return runSpeed;
+        } else if (isCrawling()) {
+            return crawlSpeed;
+        } else if (isSneaking()) {
+            return sneakSpeed;
+        } else {
+            return 0.0d;
+        }
+    }
 
     @Override
     public double forward() {
-        return 0;
+        return getMovementSpeed() * -calibrate(false);
     }
 
     @Override
     public double right() {
-        return 0;
+        return getMovementSpeed() * -calibrate(true);
     }
 
     @Override
     public void execute() {
+        if (isStanding() || this.goal == null) {
+            return;
+        }
+
+        if (!this.actor.getPos().isInRange(this.goal, 1.5d)) {
+            this.actor.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, this.goal.add(0, 1, 0));
+            this.actor.addVelocity(this.forward(), 0, this.right());
+        } else {
+            this.movementState = MovementState.STAND;
+            this.goal = null;
+        }
+    }
+
+    public enum MovementState {
+        STAND,
+        WALK,
+        SNEAK,
+        RUN,
+        CRAWL
+    }
+
+    public enum MovementDirection {
+        FORWARD,
+        RIGHT,
+        LEFT,
+        BACKWARD
     }
 }

@@ -2,7 +2,6 @@ package com.lumaa.act.entity;
 
 import com.lumaa.act.ai.ActorAI;
 import com.lumaa.act.packet.ActorPackets;
-import com.lumaa.libu.util.Geometry;
 import com.mojang.authlib.GameProfile;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
@@ -26,8 +25,6 @@ import org.jetbrains.annotations.Nullable;
 
 public class ActorEntity extends ServerPlayerEntity {
     public GameProfile gameProfile;
-    public MovementState movementState = MovementState.STAND;
-    private Vec3d moveGoal;
     private ActorAI ai;
 
     public ActorEntity(MinecraftServer server, ServerWorld world, GameProfile profile) {
@@ -37,6 +34,7 @@ public class ActorEntity extends ServerPlayerEntity {
         this.writeToSpawnPacket();
         this.sendProfileUpdatePacket();
         this.setHealth(20f);
+        this.ai = new ActorAI(this);
         setAllPartsVisible(true);
     }
 
@@ -46,7 +44,7 @@ public class ActorEntity extends ServerPlayerEntity {
         super.tick();
         this.tickFallStartPos();
         this.playerTick();
-        this.actorMove();
+        this.ai.tick();
     }
 
     public void setAllPartsVisible(boolean visible) {
@@ -89,10 +87,6 @@ public class ActorEntity extends ServerPlayerEntity {
         }
     }
 
-    public void actorMove() {
-
-    }
-
     public void teleport(ServerWorld world, BlockPos pos) {
         teleport(world, pos.getX() + 0.5d, pos.getY(), pos.getZ() + 0.5d, 0, 0);
     }
@@ -105,37 +99,12 @@ public class ActorEntity extends ServerPlayerEntity {
         teleport(new BlockPos((int) movement.x, (int) movement.y, (int) movement.z));
     }
 
-    private void moveTo(MovementState state, Vec3d goal) {
-        movementState = state;
-        moveGoal = goal;
-    }
-
-    public void walkTo(Vec3d movement) {
-        moveTo(MovementState.WALK, movement);
-    }
-
-    public void walkTo(Geometry.Coordinate coordinate) {
-        walkTo(new Vec3d(coordinate.getX() + 0.5d, coordinate.getY(), coordinate.getZ() + 0.5d));
-    }
-
-    public void walkTo(BlockPos blockPos) {
-        walkTo(new Vec3d(blockPos.getX() + 0.5d, blockPos.getY(), blockPos.getZ() + 0.5d));
-    }
-
-    public void runTo(Vec3d movement) {
-        moveTo(MovementState.RUN, movement);
-    }
-
-    public void runTo(Geometry.Coordinate coordinate) {
-        runTo(new Vec3d(coordinate.getX() + 0.5d, coordinate.getY(), coordinate.getZ() + 0.5d));
-    }
-
-    public void runTo(BlockPos blockPos) {
-        runTo(new Vec3d(blockPos.getX() + 0.5d, blockPos.getY(), blockPos.getZ() + 0.5d));
-    }
-
     public void setGameProfile(GameProfile gameProfile) {
         this.gameProfile = gameProfile;
+    }
+
+    public ActorAI getAi() {
+        return ai;
     }
 
     protected void writeToSpawnPacket() {
@@ -192,13 +161,5 @@ public class ActorEntity extends ServerPlayerEntity {
     @Override
     public GameProfile getGameProfile() {
         return gameProfile;
-    }
-
-    public enum MovementState {
-        STAND,
-        WALK,
-        SNEAK,
-        RUN,
-        CRAWL
     }
 }
