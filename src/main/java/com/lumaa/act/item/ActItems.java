@@ -16,8 +16,8 @@ import java.util.List;
 
 public class ActItems {
     public static final Item FOLLOW_STICK = registerItem("follow_stick", new FollowStick(new Item.Settings()), ItemGroups.FUNCTIONAL);
-    public static final Item LOOK_STICK = registerItem("look_stick", new LookStick(new Item.Settings()), ItemGroups.FUNCTIONAL);
-    public static final Item INVENTORY_STICK = registerItem("inventory_stick", new InventoryStick(new Item.Settings()), ItemGroups.FUNCTIONAL);
+//    public static final Item LOOK_STICK = registerItem("look_stick", new LookStick(new Item.Settings()), ItemGroups.FUNCTIONAL);
+//    public static final Item INVENTORY_STICK = registerItem("inventory_stick", new InventoryStick(new Item.Settings()), ItemGroups.FUNCTIONAL);
 
     public static Item registerItem(String name, Item item, ItemGroup group) {
         Item newItem = Registry.register(Registries.ITEM, new Identifier(ActMod.MODID, name), item);
