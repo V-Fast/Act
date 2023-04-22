@@ -72,16 +72,25 @@ public class ActorMovement implements IMovement {
 
     @Override
     public void execute() {
-        if (isStanding() || this.goal == null) {
-            return;
+        // look follow
+        if (this.actor.getAi().action.getAction().equals(ActorAction.Actions.FOLLOW)) {
+            this.actor.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, this.actor.getAi().action.getPlayerFollow().getEyePos());
         }
 
-        if (!this.actor.getPos().isInRange(this.goal, 1.5d)) {
-            this.actor.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, this.goal.add(0, 1, 0));
-            this.actor.addVelocity(this.forward(), 0, this.right());
-        } else {
-            this.movementState = MovementState.STAND;
-            this.goal = null;
+        // moving
+        if (!isStanding() && this.goal != null) {
+            if (!this.actor.getPos().isInRange(this.goal, 1.5d)) {
+                boolean following = this.actor.getAi().action.getAction().equals(ActorAction.Actions.FOLLOW);
+                if (!following) this.actor.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, this.goal.add(0, 1, 0));
+                this.actor.addVelocity(this.forward(), 0, this.right());
+            } else {
+                ActorAction action = this.actor.getAi().action;
+                if (!action.getAction().equals(ActorAction.Actions.FOLLOW)) {
+                    action.setAction(ActorAction.Actions.NONE);
+                }
+                this.movementState = MovementState.STAND;
+                this.goal = null;
+            }
         }
     }
 

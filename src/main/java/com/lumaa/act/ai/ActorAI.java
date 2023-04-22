@@ -1,6 +1,8 @@
 package com.lumaa.act.ai;
 
 import com.lumaa.act.entity.ActorEntity;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 
@@ -17,7 +19,7 @@ public class ActorAI {
 
     public void tick() {
         this.movement.execute();
-        this.action.changePose();
+        this.action.tick();
     }
 
     public void moveTo(ActorMovement.MovementState state, Vec3d pos) {
@@ -39,5 +41,13 @@ public class ActorAI {
 
     public void crawlTo(BlockPos pos) {
         moveTo(ActorMovement.MovementState.CRAWL, pos.toCenterPos());
+    }
+
+    public void moveToEntity(LivingEntity entity, ActorMovement.MovementState state) {
+        moveTo(state, entity.getPos());
+    }
+
+    public void followEntity(LivingEntity entity) {
+        this.action.follow((PlayerEntity) entity);
     }
 }

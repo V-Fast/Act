@@ -1,6 +1,7 @@
 package com.lumaa.act;
 
 import com.lumaa.act.command.ActorCommand;
+import com.lumaa.act.item.ActItems;
 import net.fabricmc.api.ModInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +15,7 @@ public class ActMod implements ModInitializer {
     @Override
     public void onInitialize() {
         npc.register();
+        ActItems.registerModItems();
 
         // print mod motto
         print("Act as if you had friends... But you are in a singleplayer world.");
