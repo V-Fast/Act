@@ -11,6 +11,7 @@ import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 
 import java.io.BufferedReader;
@@ -28,18 +29,18 @@ public class ActorCommand {
 
         ServerCommandSource source = command.getSource();
         Vec3d pos = source.getPosition();
-        ActorEntity npcEntity = new ActorEntity(source.getServer(), source.getWorld(), new GameProfile(uuid, username));
+        ActorEntity actorEntity = new ActorEntity(source.getServer(), source.getWorld(), new GameProfile(uuid, username));
 
         List<ServerPlayerEntity> players = command.getSource().getWorld().getPlayers().stream().filter(serverPlayerEntity -> serverPlayerEntity.getClass() == ServerPlayerEntity.class).toList();
         for (ServerPlayerEntity p : players) {
-            p.networkHandler.sendPacket(npcEntity.createSpawnPacket());
-            p.networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.ADD_PLAYER, npcEntity));
+            p.networkHandler.sendPacket(actorEntity.createSpawnPacket());
+            p.networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.ADD_PLAYER, actorEntity));
         }
 
-        source.getWorld().spawnEntity(npcEntity);
+        source.getWorld().spawnEntity(actorEntity);
 
         ServerCommandSource s = command.getSource();
-        npcEntity.teleport(s.getWorld(), pos.getX(), pos.getY(), pos.getZ(), (s.getEntity() != null) ? s.getEntity().getYaw() : 0, (s.getEntity() != null) ? s.getEntity().getPitch() : 0);
+        actorEntity.teleport(s.getWorld(), pos.getX(), pos.getY(), pos.getZ(), (s.getEntity() != null) ? s.getEntity().getYaw() : 0, (s.getEntity() != null) ? s.getEntity().getPitch() : 0);
         source.sendMessage(Text.literal("Spawned " + username));
         return 1;
     }
