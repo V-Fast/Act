@@ -23,6 +23,8 @@ public class ActorAI {
     }
 
     public void moveTo(ActorMovement.MovementState state, Vec3d pos) {
+        this.movement.pathfinder = new Pathfinder(this);
+        this.movement.pathfinder.setPositions(this.actor.getBlockPos(), new BlockPos((int) pos.getX(), (int) pos.getY(), (int) pos.getZ()));
         this.movement.movementState = state;
         this.movement.goal = pos;
     }

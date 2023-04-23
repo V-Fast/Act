@@ -12,7 +12,8 @@ public class Pathfinder {
     private ActorEntity actor;
     private ActorMovement movement;
     private ActorAction action;
-    public ArrayList<Path> paths = new ArrayList<>();
+    private boolean positionsSet = false;
+    public Path path;
     public World world;
     public BlockPos origin;
     public BlockPos destination;
@@ -22,24 +23,19 @@ public class Pathfinder {
         this.actor = ai.actor;
         this.movement = ai.movement;
         this.action = ai.action;
+        this.world = ai.actor.world;
     }
 
     public void setPositions(BlockPos origin, BlockPos destination) {
         this.origin = origin;
         this.destination = destination;
+        this.path = new Path(this);
+        this.positionsSet = true;
     }
 
-    public void execute(boolean move) {
-
-    }
-
-    private void discover() {
-
-    }
-
-    private boolean walkable(BlockPos pos) {
-        BlockState block = world.getBlockState(pos);
-        BlockState block2 = world.getBlockState(pos.add(0, 1, 0));
-        return block.isAir() || block2.isAir();
+    public void execute() {
+        if (positionsSet) {
+            this.path.tick();
+        }
     }
 }

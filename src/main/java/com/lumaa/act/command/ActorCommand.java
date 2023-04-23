@@ -40,8 +40,9 @@ public class ActorCommand {
         source.getWorld().spawnEntity(actorEntity);
 
         ServerCommandSource s = command.getSource();
-        actorEntity.teleport(s.getWorld(), pos.getX(), pos.getY(), pos.getZ(), (s.getEntity() != null) ? s.getEntity().getYaw() : 0, (s.getEntity() != null) ? s.getEntity().getPitch() : 0);
+//        actorEntity.teleport(s.getWorld(), pos.getX(), pos.getY(), pos.getZ(), (s.getEntity() != null) ? s.getEntity().getYaw() : 0, (s.getEntity() != null) ? s.getEntity().getPitch() : 0);
         source.sendMessage(Text.literal("Spawned " + username));
+        actorEntity.getAi().crawlTo(new BlockPos((int) pos.getX(), (int) pos.getY(), (int) pos.getZ()));
         return 1;
     }
 

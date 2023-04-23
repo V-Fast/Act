@@ -10,6 +10,7 @@ public class ActorMovement implements IMovement {
     private static final double walkSpeed = 0.1;
     private static final double sneakSpeed = 0.035;
     private static final double crawlSpeed = 0.035;
+    public Pathfinder pathfinder;
     public MovementState movementState;
     public Vec3d goal;
 
@@ -70,8 +71,7 @@ public class ActorMovement implements IMovement {
         return getMovementSpeed() * -calibrate(true);
     }
 
-    @Override
-    public void execute() {
+    private void oldMovement() {
         // look follow
         if (this.actor.getAi().action.getAction().equals(ActorAction.Actions.FOLLOW)) {
             this.actor.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, this.actor.getAi().action.getPlayerFollow().getEyePos());
@@ -84,6 +84,34 @@ public class ActorMovement implements IMovement {
                 if (!following) this.actor.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, this.goal.add(0, 1, 0));
                 this.actor.addVelocity(this.forward(), 0, this.right());
             } else {
+                ActorAction action = this.actor.getAi().action;
+                if (!action.getAction().equals(ActorAction.Actions.FOLLOW)) {
+                    action.setAction(ActorAction.Actions.NONE);
+                }
+                this.movementState = MovementState.STAND;
+                this.goal = null;
+            }
+        }
+    }
+
+    @Override
+    public void execute() {
+        if (!isStanding() && this.goal != null) {
+            this.pathfinder.execute();
+
+            if (this.pathfinder.path.isStopped()) {
+                Path path = this.pathfinder.path;
+                Thread thread = new Thread(() -> {
+                    path.getSteps().forEach(blockPos -> {
+                        boolean following = this.actor.getAi().action.getAction().equals(ActorAction.Actions.FOLLOW);
+                        while (!this.actor.getPos().isInRange(blockPos.toCenterPos(), following ? 2.5d : 1d) && this.pathfinder.path.isStopped()) {
+                            this.actor.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, blockPos.add(0, 1, 0).toCenterPos());
+                            this.actor.addVelocity(this.forward(), 0, this.right());
+                        }
+                    });
+                });
+                thread.start();
+
                 ActorAction action = this.actor.getAi().action;
                 if (!action.getAction().equals(ActorAction.Actions.FOLLOW)) {
                     action.setAction(ActorAction.Actions.NONE);
