@@ -25,7 +25,7 @@ public class InventoryStick extends Item {
             InventoryScreen inv = new InventoryScreen(user);
 
             MinecraftClient mc = MinecraftClient.getInstance();
-            mc.setScreen(inv);
+            mc.currentScreen = inv;
 
             return ActionResult.SUCCESS;
         }
