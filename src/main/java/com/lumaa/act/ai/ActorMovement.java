@@ -101,16 +101,19 @@ public class ActorMovement implements IMovement {
 
             if (this.pathfinder.path.isStopped()) {
                 Path path = this.pathfinder.path;
-                Thread thread = new Thread(() -> {
-                    path.getSteps().forEach(blockPos -> {
-                        boolean following = this.actor.getAi().action.getAction().equals(ActorAction.Actions.FOLLOW);
-                        while (!this.actor.getPos().isInRange(blockPos.toCenterPos(), following ? 2.5d : 1d) && this.pathfinder.path.isStopped()) {
-                            this.actor.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, blockPos.add(0, 1, 0).toCenterPos());
-                            this.actor.addVelocity(this.forward(), 0, this.right());
-                        }
-                    });
+
+                boolean following = this.actor.getAi().action.getAction().equals(ActorAction.Actions.FOLLOW);
+                this.pathfinder.path.getSteps().forEach(blockPos -> {
+                    if (!this.actor.getPos().isInRange(blockPos.toCenterPos(), following ? 2.5d : 1d)) {
+                        this.actor.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, blockPos.add(0, 1, 0).toCenterPos());
+                        this.actor.addVelocity(this.forward(), 0, this.right());
+                    }
                 });
-                thread.start();
+
+//                while (!this.actor.getPos().isInRange(blockPos.toCenterPos(), following ? 2.5d : 1d) && this.pathfinder.path.isStopped()) {
+//                    this.actor.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, blockPos.add(0, 1, 0).toCenterPos());
+//                    this.actor.addVelocity(this.forward(), 0, this.right());
+//                }
 
                 ActorAction action = this.actor.getAi().action;
                 if (!action.getAction().equals(ActorAction.Actions.FOLLOW)) {

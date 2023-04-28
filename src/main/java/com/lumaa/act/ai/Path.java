@@ -42,7 +42,6 @@ public class Path {
         if (this.lastStep.equals(this.destination)) {
             if (!this.stopped) {
                 this.stopPath();
-                ActMod.print("STOPPED PATH");
                 return;
             }
         }
@@ -67,7 +66,7 @@ public class Path {
             }
 
             BlockPos step = this.lastStep.add(x, 0, z);
-            if (walkable(step)) {
+            if (walkable(step) && optimized(this.lastDir, this.currentDir)) {
                 this.currentStep = step;
                 this.steps.add(step);
             }
@@ -105,6 +104,35 @@ public class Path {
         } else {
             ActMod.print("Too many iterations");
         }
+    }
+
+    private boolean optimized(PathDirection lastDir, List<BlockPos> lastPos) {
+        if (lastPos.size() != 2) throw new ArrayStoreException();
+
+        BlockPos l = lastPos.get(0); // from
+        BlockPos i = lastPos.get(1); // to
+
+        PathDirection dir;
+        int x = i.getX() - l.getX();
+        int z = i.getZ() - l.getZ();
+
+        if (x == 0) {
+            dir = z > 0 ? PathDirection.EAST : PathDirection.WEST;
+        } else if (z == 0) {
+            dir = x > 0 ? PathDirection.NORTH : PathDirection.SOUTH;
+        } else {
+            if (x > z) {
+                dir = x > 0 ? PathDirection.NORTH : PathDirection.SOUTH;
+            } else {
+                dir = z > 0 ? PathDirection.EAST : PathDirection.WEST;
+            }
+        }
+
+        return !dir.equals(lastDir);
+    }
+
+    private boolean optimized(PathDirection lastDir, PathDirection currentDir) {
+        return !lastDir.equals(currentDir);
     }
 
     public int getIterations() {
