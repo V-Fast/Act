@@ -2,7 +2,6 @@ package com.lumaa.act.item;
 
 import com.lumaa.act.ActMod;
 import com.lumaa.act.item.stick.FollowStick;
-import com.lumaa.act.item.stick.InventoryStick;
 import com.lumaa.act.item.stick.LookStick;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.item.Item;
@@ -16,7 +15,7 @@ import java.util.List;
 
 public class ActItems {
     public static final Item FOLLOW_STICK = registerItem("follow_stick", new FollowStick(new Item.Settings()), ItemGroups.FUNCTIONAL);
-//    public static final Item LOOK_STICK = registerItem("look_stick", new LookStick(new Item.Settings()), ItemGroups.FUNCTIONAL);
+    public static final Item LOOK_STICK = registerItem("look_stick", new LookStick(new Item.Settings()), ItemGroups.FUNCTIONAL);
 //    public static final Item INVENTORY_STICK = registerItem("inventory_stick", new InventoryStick(new Item.Settings()), ItemGroups.FUNCTIONAL);
 
     public static Item registerItem(String name, Item item, ItemGroup group) {

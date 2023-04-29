@@ -8,6 +8,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsageContext;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.network.packet.s2c.play.LookAtS2CPacket;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.ActionResult;
@@ -23,10 +24,7 @@ public class LookStick extends Item {
         if (entity instanceof ActorEntity) {
             user.playSound(SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.PLAYERS, 1f, 1f);
 
-            NbtCompound nbt = new NbtCompound();
-            nbt.putInt("ActorId", entity.getId());
-            stack.setNbt(nbt);
-
+            ((ActorEntity) entity).networkHandler.sendPacket(new LookAtS2CPacket(EntityAnchorArgumentType.EntityAnchor.EYES, user, EntityAnchorArgumentType.EntityAnchor.EYES));
             return ActionResult.SUCCESS;
         }
         return ActionResult.FAIL;
