@@ -40,7 +40,7 @@ dependencies {
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 	
 	// LibuLib
-	modImplementation "maven.modrinth:libu:${libu_version}"
+//	modImplementation "maven.modrinth:libu:${libu_version}"
 }
 
 processResources {
@@ -85,7 +85,7 @@ modrinth {
 	loaders = ["fabric"]
 	dependencies {
 		required.project "fabric-api"
-		required.project "libu"
+//		required.project "libu"
 	}
 
 	// synchronise description with README.md
