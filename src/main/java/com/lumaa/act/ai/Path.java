@@ -21,7 +21,7 @@ public class Path {
     private PathDirection lastDir;
     private PathDirection currentDir;
 
-    private final int maxIterations = 500;
+    private final int maxIterations = 100;
 
     public Path(Pathfinder pathfinder) {
         this.pathfinder = pathfinder;
@@ -39,9 +39,10 @@ public class Path {
     private void nextStep() {
         this.lastStep = this.currentStep;
 
-        if (this.lastStep.equals(this.destination)) {
+        if (this.lastStep.equals(this.destination) || this.getIterations() >= this.maxIterations) {
             if (!this.stopped) {
                 this.stopPath();
+                this.steps.add(this.lastStep);
                 return;
             }
         }
@@ -50,7 +51,7 @@ public class Path {
             BlockPos step = this.lastStep.add(0, destination.getY() > origin.getY() ? 1 : -1, 0);
             if (walkable(step)) {
                 this.currentStep = step;
-                this.steps.add(step);
+                if (optimized(this.lastDir, this.currentDir)) this.steps.add(step);
             }
         } else {
             this.lastDir = this.currentDir;
@@ -65,10 +66,11 @@ public class Path {
                 case WEST -> z = -1;
             }
 
+
             BlockPos step = this.lastStep.add(x, 0, z);
-            if (walkable(step) && optimized(this.lastDir, this.currentDir)) {
+            if (walkable(step)) {
                 this.currentStep = step;
-                this.steps.add(step);
+                if (optimized(this.lastDir, this.currentDir)) this.steps.add(step);
             }
         }
     }
@@ -101,6 +103,7 @@ public class Path {
         if (this.iterations < this.maxIterations) {
             this.getPathfinder().path = this;
             this.stopped = true;
+            ActMod.print("Steps: " + this.steps.size());
         } else {
             ActMod.print("Too many iterations");
         }
@@ -132,6 +135,7 @@ public class Path {
     }
 
     private boolean optimized(PathDirection lastDir, PathDirection currentDir) {
+        if (lastDir == null) return true;
         return !lastDir.equals(currentDir);
     }
 

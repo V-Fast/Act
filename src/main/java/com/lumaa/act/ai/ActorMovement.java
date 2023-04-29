@@ -99,28 +99,18 @@ public class ActorMovement implements IMovement {
         if (!isStanding() && this.goal != null) {
             this.pathfinder.execute();
 
-            if (this.pathfinder.path.isStopped()) {
-                Path path = this.pathfinder.path;
+            if (this.pathfinder.path.isStopped() && this.pathfinder.isPathCorrect()) {
+                pathfinder.setPathGoals();
 
-                boolean following = this.actor.getAi().action.getAction().equals(ActorAction.Actions.FOLLOW);
-                this.pathfinder.path.getSteps().forEach(blockPos -> {
-                    if (!this.actor.getPos().isInRange(blockPos.toCenterPos(), following ? 2.5d : 1d)) {
-                        this.actor.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, blockPos.add(0, 1, 0).toCenterPos());
-                        this.actor.addVelocity(this.forward(), 0, this.right());
+                if (pathfinder.isFinishedFollowing()) {
+                    pathfinder.reset();
+                    ActorAction action = this.actor.getAi().action;
+                    if (!action.getAction().equals(ActorAction.Actions.FOLLOW)) {
+                        action.setAction(ActorAction.Actions.NONE);
                     }
-                });
-
-//                while (!this.actor.getPos().isInRange(blockPos.toCenterPos(), following ? 2.5d : 1d) && this.pathfinder.path.isStopped()) {
-//                    this.actor.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, blockPos.add(0, 1, 0).toCenterPos());
-//                    this.actor.addVelocity(this.forward(), 0, this.right());
-//                }
-
-                ActorAction action = this.actor.getAi().action;
-                if (!action.getAction().equals(ActorAction.Actions.FOLLOW)) {
-                    action.setAction(ActorAction.Actions.NONE);
+                    this.movementState = MovementState.STAND;
+                    this.goal = null;
                 }
-                this.movementState = MovementState.STAND;
-                this.goal = null;
             }
         }
     }
