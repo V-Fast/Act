@@ -24,7 +24,7 @@ public class LookStick extends Item {
         if (entity instanceof ActorEntity) {
             user.playSound(SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.PLAYERS, 1f, 1f);
 
-            ((ActorEntity) entity).networkHandler.sendPacket(new LookAtS2CPacket(EntityAnchorArgumentType.EntityAnchor.EYES, user, EntityAnchorArgumentType.EntityAnchor.EYES));
+            ((ActorEntity) entity).lookAtEntity(EntityAnchorArgumentType.EntityAnchor.EYES, user, EntityAnchorArgumentType.EntityAnchor.EYES);
             return ActionResult.SUCCESS;
         }
         return ActionResult.FAIL;
