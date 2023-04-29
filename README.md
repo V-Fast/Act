@@ -10,13 +10,19 @@
 
 
 ## Description
-Create NPCs (also called "Actors") using the `/npc [Player Name]` command. This will maybe change in the future.\
-Actors can follow you if you right-click using the **Follow Stick**. You can make them stop
+Create Actors (also called "NPCs") using the `/actor [Player Name]` command. This will maybe change in the future.\
+Actors can follow you if you right-click using the **Follow Stick**. You can make them stop at any time by using the **Follow Stick** again!
+
+**WARNING**: This new version ([1.2.0](https://modrinth.com/mod/act/version/1.2.0)) includes a new artificial intelligence, it might break or crash sometimes! If it does occur, please [fill an issue](https://github.com/lumaa-dev/Act/issues/new) unless it's already [listed](#known-bugs)
 
 ## How can Act be used?
 Act can be used to feel less lonely (this depends on people), take screenshots with persons you could never take screenshots with! Or just have fancy statues.
 
 In the future, Actors will be able to move using a user-defined path. or defend players from mobs!
+
+## Actor AI
+Actor AI is what powers an Actor's movement, it uses hard equations and conditions to make an Actor go from one place to another. Actor AI doesn't use any of Minecraft's AI.\
+Actor AI is moving from axis to axis (Y axis is still bugged) instead of moving blocks to blocks or just going forward.
 
 ## Build
 To build the mod, you need to have [git](https://git-scm.com/downloads).\
@@ -33,7 +39,10 @@ Once the loading is done:
 - Install the latest version of [Fabric API](https://modrinth.com/mod/fabric-api)
 
 ## Known Bugs
-- NPC entities do not save
-- NPC entity does not have knockback when damaged by entity or player
-- `/npc` "*ign*" parameter is not case-sensitive
+- Actor entities do not save
+- Actor entity does not have knockback when damaged by entity or player
+- `/actor` "*ign*" parameter is not case-sensitive
+- TPS drops to 0 when loading Actor
+- Actor AI sometimes makes the entity turn on itself (then continues)
+- Actor AI has a hard time with obstacles, and blocks that aren't at his level
 
