@@ -17,7 +17,7 @@ public class ActMod implements ModInitializer {
         npc.register();
         ActItems.registerModItems();
 
-        // print mod motto
+        // print mod mini-motto
         print("Actors are on stage");
     }
 
