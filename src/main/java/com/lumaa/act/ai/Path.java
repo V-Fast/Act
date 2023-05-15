@@ -1,6 +1,7 @@
 package com.lumaa.act.ai;
 
 import com.lumaa.act.ActMod;
+import com.lumaa.act.entity.ActorEntity;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
 
@@ -15,6 +16,7 @@ public class Path {
     private boolean stopped = false;
 
     private BlockPos lastStep;
+    private ActorEntity actor;
     private BlockPos currentStep;
     private ArrayList<BlockPos> steps = new ArrayList<>();
 
@@ -47,13 +49,7 @@ public class Path {
             }
         }
 
-        if (this.lastStep.getY() != destination.getY()) {
-            BlockPos step = this.lastStep.add(0, destination.getY() > origin.getY() ? 1 : -1, 0);
-            if (walkable(step)) {
-                this.currentStep = step;
-                if (optimized(this.lastDir, this.currentDir)) this.steps.add(step);
-            }
-        } else {
+        if (this.lastStep.getY() == destination.getY()) {
             this.lastDir = this.currentDir;
             this.currentDir = findDirection();
 
@@ -71,6 +67,23 @@ public class Path {
             if (walkable(step)) {
                 this.currentStep = step;
                 if (optimized(this.lastDir, this.currentDir)) this.steps.add(step);
+            }
+        } else {
+            BlockPos step = this.lastStep.add(0, destination.getY() > origin.getY() ? 1 : -1, 0);
+            if (walkable(step)) {
+                this.currentStep = step;
+                if (optimized(this.lastDir, this.currentDir)) this.steps.add(step);
+            }
+        }
+    }
+
+    public void headYaw() {
+        if (this.actor!=null) {
+            switch (findDirection()) {
+                case NORTH -> this.actor.setHeadYaw(0);
+                case SOUTH -> this.actor.setHeadYaw(180);
+                case WEST -> this.actor.setHeadYaw(-90);
+                case EAST -> this.actor.setHeadYaw(90);
             }
         }
     }
@@ -92,13 +105,24 @@ public class Path {
         }
     }
 
+    public void stop() {
+        // Stop the actor's movement
+        this.actor.getAi().movement.movementState = ActorMovement.MovementState.STAND;
+        this.actor.getAi().movement.goal = null;
+
+        // Reset the actor's pathfinder
+        if (this.actor.getAi().movement.pathfinder != null) {
+            this.actor.getAi().movement.pathfinder.reset();
+        }
+    }
+
     private boolean walkable(BlockPos pos) {
         BlockState block = this.getPathfinder().world.getBlockState(pos);
         BlockState block2 = this.getPathfinder().world.getBlockState(pos.add(0, 1, 0));
         return block.isAir() || block2.isAir();
     }
 
-    private void stopPath() {
+    public void stopPath() {
         this.iterations = this.steps.size();
         if (this.iterations < this.maxIterations) {
             this.getPathfinder().path = this;

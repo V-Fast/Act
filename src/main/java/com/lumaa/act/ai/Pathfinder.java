@@ -3,9 +3,11 @@ package com.lumaa.act.ai;
 import com.lumaa.act.entity.ActorEntity;
 import net.minecraft.command.argument.EntityAnchorArgumentType;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Pathfinder {
@@ -55,10 +57,24 @@ public class Pathfinder {
         if (!this.isFollowing()) return;
         move();
     }
-
+    List<Vec3d> prevPositions = new ArrayList<>();
     private void move() {
+        // Check if the actor has moved far enough
+        if (prevPositions.size() > 10) {
+            Vec3d firstPos = prevPositions.get(0);
+            Vec3d lastPos = prevPositions.get(prevPositions.size() - 1);
+            double distance = firstPos.distanceTo(lastPos);
+            if (distance < 1.0) {
+                // The actor has not moved far enough, try changing its path or movement direction
+                this.currentGoal = this.destination;
+                this.movement.goal = this.currentGoal.toCenterPos();
+            }
+            prevPositions.remove(0);
+        }
+        prevPositions.add(this.actor.getPos());
+
         l += 1;
-        if (l > path.getSteps().size() - 1 ||  l < 0) l = 0;
+        if (l > path.getSteps().size() - 1 || l < 0) l = 0;
         if (this.isFollowing() && isNearGoal(null)) {
             this.currentGoal = path.getSteps().get(l);
             this.movement.goal = this.currentGoal.toCenterPos();
@@ -79,13 +95,24 @@ public class Pathfinder {
     private boolean isNearGoal(@Nullable BlockPos goal) {
         boolean following = this.action.getAction().equals(ActorAction.Actions.FOLLOW);
         if (goal == null) {
-            if (this.currentGoal != null) {
-                goal = this.currentGoal;
-            } else {
+            System.out.println("Current Goal: "+this.currentGoal);
+            if (this.currentGoal == null) {
                 return true;
+            } else {
+                goal = this.currentGoal;
+                System.out.println("Goal: "+goal);
             }
         }
-        return this.actor.getPos().isInRange(goal.toCenterPos(), following ? 2.5d : 0.85d);
+        double range = 0.85d;
+        if (following) range = 2d;
+        else if (this.movement.isRunning()) range = 1.5d;
+        else if (this.movement.isWalking()) range = 1.0d;
+
+        // Check if the actor is within the horizontal and vertical range of its goal
+        boolean isInRange = this.actor.getPos().isInRange(goal.toCenterPos(), range);
+        boolean isWithinVerticalRange = Math.abs(this.actor.getY() - goal.getY()) <= 2;
+        System.out.println("IsinRange: "+isInRange+", Vertical: "+isWithinVerticalRange);
+        return isInRange && isWithinVerticalRange;
     }
 
     private boolean isNearEnd() {

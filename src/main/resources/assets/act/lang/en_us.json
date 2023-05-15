@@ -1,5 +1,6 @@
 {
   "item.act.follow_stick": "Follow Stick",
   "item.act.look_stick": "Look Stick",
-  "item.act.inventory_stick": "Inventory Stick"
+  "item.act.inventory_stick": "Inventory Stick",
+  "item.act.travel_stick": "Travel Stick"
 }
