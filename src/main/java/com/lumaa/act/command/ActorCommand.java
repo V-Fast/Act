@@ -18,34 +18,47 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 public class ActorCommand {
     public static final String name = "actor";
+        private List<ActorEntity> actors = new ArrayList<>();
+        private List<ServerPlayerEntity> players;
 
     public int onRun(CommandContext<ServerCommandSource> command, String username) {
-        UUID uuid = lookForPlayer(username);
+            UUID uuid = lookForPlayer(username);
 
-        ServerCommandSource source = command.getSource();
-        Vec3d pos = source.getPosition();
-        ActorEntity actorEntity = new ActorEntity(source.getServer(), source.getWorld(), new GameProfile(uuid, username));
+            ServerCommandSource source = command.getSource();
+            Vec3d pos = source.getPosition();
+            ActorEntity actorEntity = new ActorEntity(source.getServer(), source.getWorld(), new GameProfile(uuid, username));
+            actors.add(actorEntity);
 
-        List<ServerPlayerEntity> players = command.getSource().getWorld().getPlayers().stream().filter(serverPlayerEntity -> serverPlayerEntity.getClass() == ServerPlayerEntity.class).toList();
-        for (ServerPlayerEntity p : players) {
-            p.networkHandler.sendPacket(actorEntity.createSpawnPacket());
-            p.networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.ADD_PLAYER, actorEntity));
+            players = command.getSource().getWorld().getPlayers().stream().filter(serverPlayerEntity -> serverPlayerEntity.getClass() == ServerPlayerEntity.class).toList();
+            for (ServerPlayerEntity p : players) {
+                p.networkHandler.sendPacket(actorEntity.createSpawnPacket());
+                p.networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.ADD_PLAYER, actorEntity));
+            }
+
+            source.getWorld().spawnEntity(actorEntity);
+
+            ServerCommandSource s = command.getSource();
+            actorEntity.teleport(s.getWorld(), pos.getX(), pos.getY(), pos.getZ(), (s.getEntity() != null) ? s.getEntity().getYaw() : 0, (s.getEntity() != null) ? s.getEntity().getPitch() : 0);
+            source.sendMessage(Text.literal("Spawned " + username));
+
+            // ONLY FOR PATHFINDING TEST
+            // actorEntity.getAi().walkTo(new BlockPos((int) pos.getX(), (int) pos.getY() - 1, (int) pos.getZ()));
+            return 1;
         }
 
-        source.getWorld().spawnEntity(actorEntity);
-
-        ServerCommandSource s = command.getSource();
-        actorEntity.teleport(s.getWorld(), pos.getX(), pos.getY(), pos.getZ(), (s.getEntity() != null) ? s.getEntity().getYaw() : 0, (s.getEntity() != null) ? s.getEntity().getPitch() : 0);
-        source.sendMessage(Text.literal("Spawned " + username));
-
-//        ONLY FOR PATHFINDING TEST
-//        actorEntity.getAi().walkTo(new BlockPos((int) pos.getX(), (int) pos.getY() - 1, (int) pos.getZ()));
-        return 1;
+    public List<ActorEntity> getActorsList()
+    {
+        return actors;
+    }
+    public List<ServerPlayerEntity> getPlayers()
+    {
+        return players;
     }
 
     private static ArgumentBuilder<ServerCommandSource, ?> argument() {

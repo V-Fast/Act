@@ -8,6 +8,7 @@ import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.minecraft.client.render.entity.PlayerModelPart;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.network.NetworkSide;
 import net.minecraft.network.PacketByteBuf;
@@ -56,6 +57,7 @@ public class ActorEntity extends ServerPlayerEntity {
         setVisiblePart(PlayerModelPart.RIGHT_PANTS_LEG, visible);
         setVisiblePart(PlayerModelPart.RIGHT_SLEEVE, visible);
     }
+
 
     public void setVisiblePart(PlayerModelPart modelPart, boolean visible) {
         int byt = this.getDataTracker().get(PLAYER_MODEL_PARTS);

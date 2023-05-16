@@ -107,12 +107,14 @@ public class Path {
 
     public void stop() {
         // Stop the actor's movement
-        this.actor.getAi().movement.movementState = ActorMovement.MovementState.STAND;
-        this.actor.getAi().movement.goal = null;
+        if(this.actor!=null) {
+            this.actor.getAi().movement.movementState = ActorMovement.MovementState.STAND;
+            this.actor.getAi().movement.goal = null;
 
-        // Reset the actor's pathfinder
-        if (this.actor.getAi().movement.pathfinder != null) {
-            this.actor.getAi().movement.pathfinder.reset();
+            // Reset the actor's pathfinder
+            if (this.actor.getAi().movement.pathfinder != null) {
+                this.actor.getAi().movement.pathfinder.reset();
+            }
         }
     }
 

@@ -27,7 +27,7 @@ public class TravelStick extends Item {
             user.playSound(SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.PLAYERS, 1f, 1f);
             //actor.getAi().followEntity(user);
             actor.getAi().moveToEntity(user, ActorMovement.MovementState.RUN);
-            actor.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, actor.getAi().action.getPlayerFollow().getPos());
+            if (actor.getAi().action.getPlayerFollow()!=null) actor.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, actor.getAi().action.getPlayerFollow().getPos());
             return ActionResult.SUCCESS;
         }
         return ActionResult.FAIL;
