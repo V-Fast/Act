@@ -23,7 +23,6 @@ public class ActorData {
     private static final String ACTOR_DATA_FILE = "ActorData.dat";
     private static final String WORLD_DATA_DIR = "data/";
 
-    // TODO: Save and load inventory
     public static void saveActorData(List<ActorEntity> actors) {
         if (actors.isEmpty()) return;
 
@@ -39,6 +38,14 @@ public class ActorData {
             nbt.putFloat("Pitch", actor.getPitch());
             nbt.putString("World", actor.getWorld().toString());
             nbt.putFloat("Health",actor.getHealth());
+            NbtList inventoryNbt = new NbtList();
+            for (int i = 0; i < actor.getInventory().size(); i++) {
+                ItemStack stack = actor.getInventory().getStack(i);
+                NbtCompound itemNbt = new NbtCompound();
+                stack.writeNbt(itemNbt);
+                inventoryNbt.add(itemNbt);
+            }
+            nbt.put("Inventory", inventoryNbt);
             nbtList.add(nbt);
         }
 
@@ -87,7 +94,14 @@ public class ActorData {
                     if (actorEntity.getHealth()<=0) continue;
                     actorEntity.setHealth(health);
                     world.spawnEntity(actorEntity);
-
+                    if (nbt.contains("Inventory")) {
+                        NbtList inventoryNbt = nbt.getList("Inventory", 10);
+                        for (int k = 0; k < inventoryNbt.size(); k++) {
+                            NbtCompound itemNbt = inventoryNbt.getCompound(i);
+                            ItemStack stack = ItemStack.fromNbt(itemNbt);
+                            actorEntity.getInventory().setStack(i, stack);
+                        }
+                    }
                     System.out.println("Spawned: " + name);
 
                     actorEntity.teleport(world, x, y + 0.1d, z, yaw, pitch);
