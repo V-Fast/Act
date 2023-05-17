@@ -53,7 +53,6 @@ public class ActorData {
         NbtCompound root = new NbtCompound();
         root.put("Actors", nbtList);
         try {
-
             File file = new File(actors.get(0).getServer().getRunDirectory(), WORLD_DATA_DIR + ACTOR_DATA_FILE);
             NbtIo.writeCompressed(root, new FileOutputStream(file));
         } catch (IOException e) {
