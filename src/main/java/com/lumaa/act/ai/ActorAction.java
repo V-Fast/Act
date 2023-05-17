@@ -24,10 +24,16 @@ public class ActorAction {
         }
     }
 
+    /**
+     * Forces the actor to run if the following player is too far (3.5 blocks)
+     */
     public boolean runToFollow() {
         return !this.actorAI.actor.getPos().isInRange(this.playerFollow.getPos(), 3.5d);
     }
 
+    /**
+     * Changes the player model's pose
+     */
     public void changePose() {
         if (this.actorAI.movement.isSneaking())  {
             this.actorAI.actor.setPose(EntityPose.CROUCHING);
@@ -38,6 +44,10 @@ public class ActorAction {
         }
     }
 
+    /**
+     * Define a player follower
+     * @param player Player to follow
+     */
     public void follow(PlayerEntity player) {
         this.playerFollow = player;
         this.setAction(Actions.FOLLOW);
@@ -55,9 +65,14 @@ public class ActorAction {
         return playerFollow;
     }
 
+    /**
+     * Different actions an actor can perform
+     */
     public enum Actions {
         NONE,
         MOVE,
-        FOLLOW
+        FOLLOW,
+        PLACING,
+        BREAKING,
     }
 }

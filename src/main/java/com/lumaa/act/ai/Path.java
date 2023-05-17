@@ -77,6 +77,9 @@ public class Path {
         }
     }
 
+    /**
+     * Changes the head orientation depending on the north, south, east and west
+     */
     public void headYaw() {
         if (this.actor!=null) {
             switch (findDirection()) {
@@ -88,6 +91,10 @@ public class Path {
         }
     }
 
+    /**
+     * Find the next turning point
+     * @return A direction
+     */
     private PathDirection findDirection() {
         int x = destination.getX() - this.lastStep.getX();
         int z = destination.getZ() - this.lastStep.getZ();
@@ -105,6 +112,9 @@ public class Path {
         }
     }
 
+    /**
+     * Stops the pathfinding
+     */
     public void stop() {
         // Stop the actor's movement
         if(this.actor!=null) {
@@ -118,12 +128,20 @@ public class Path {
         }
     }
 
+    /**
+     * Checks if the actor can walk on a block
+     * @param pos A block
+     * @return If the block can be walked on
+     */
     private boolean walkable(BlockPos pos) {
         BlockState block = this.getPathfinder().world.getBlockState(pos);
         BlockState block2 = this.getPathfinder().world.getBlockState(pos.add(0, 1, 0));
         return block.isAir() || block2.isAir();
     }
 
+    /**
+     * The pathfinding is correct and is returned in {@link com.lumaa.act.ai.Path#steps}
+     */
     public void stopPath() {
         this.iterations = this.steps.size();
         if (this.iterations < this.maxIterations) {
@@ -135,6 +153,11 @@ public class Path {
         }
     }
 
+    /**
+     * Optimizes the iterations
+     * @param lastDir Last direction
+     * @param lastPos [From BlockPos, To BlockPos]
+     */
     private boolean optimized(PathDirection lastDir, List<BlockPos> lastPos) {
         if (lastPos.size() != 2) throw new ArrayStoreException();
 
@@ -160,6 +183,11 @@ public class Path {
         return !dir.equals(lastDir);
     }
 
+    /**
+     * Optimizes the iterations
+     * @param lastDir Last direction
+     * @param currentDir Current direction
+     */
     private boolean optimized(PathDirection lastDir, PathDirection currentDir) {
         if (lastDir == null) return true;
         return !lastDir.equals(currentDir);
@@ -181,6 +209,9 @@ public class Path {
         return stopped;
     }
 
+    /**
+     * All the cardinal points
+     */
     public enum PathDirection {
         NORTH,
         SOUTH,

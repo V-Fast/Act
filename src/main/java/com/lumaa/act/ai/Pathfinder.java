@@ -24,6 +24,7 @@ public class Pathfinder {
     public World world;
     public BlockPos origin;
     public BlockPos destination;
+    public List<Vec3d> prevPositions = new ArrayList<>();
 
     public Pathfinder(ActorAI ai) {
         this.ai = ai;
@@ -57,7 +58,10 @@ public class Pathfinder {
         if (!this.isFollowing()) return;
         move();
     }
-    List<Vec3d> prevPositions = new ArrayList<>();
+
+    /**
+     * Moves the actor to the next goal
+     */
     private void move() {
         // Check if the actor has moved far enough
         if (prevPositions.size() > 10) {
@@ -92,6 +96,10 @@ public class Pathfinder {
         }
     }
 
+    /**
+     * Returns true if the actor is next to a goal
+     * @param goal null = currentGoal
+     */
     private boolean isNearGoal(@Nullable BlockPos goal) {
         boolean following = this.action.getAction().equals(ActorAction.Actions.FOLLOW);
         if (goal == null) {

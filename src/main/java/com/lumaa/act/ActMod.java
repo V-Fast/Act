@@ -52,6 +52,7 @@ public class ActMod implements ModInitializer {
     private void onServerStopping(MinecraftServer server) {
         ActorData.saveActorData(actors);
     }
+
     public static void print(String message) {
         logger.info("[Act] " + message);
     }

@@ -18,7 +18,7 @@ public class ActorMovement implements IMovement {
     public Pathfinder pathfinder;
     public MovementState movementState;
     public Vec3d goal;
-    private boolean isJumping=false;
+    private boolean isJumping = false;
 
     public ActorMovement(ActorEntity actor) {
         this.actor = actor;
@@ -53,6 +53,10 @@ public class ActorMovement implements IMovement {
         return this.movementState == MovementState.CRAWL;
     }
 
+    /**
+     * Get the movement speed corresponding to the actor's movement state
+     * @return
+     */
     public double getMovementSpeed() {
         if (isWalking()) {
             return walkSpeed;
@@ -67,17 +71,29 @@ public class ActorMovement implements IMovement {
         }
     }
 
+    /**
+     * The velocity "forward" corresponding to the head yaw
+     * @return Velocity double
+     */
     @Override
     public double forward() {
         return getMovementSpeed() * -calibrate(false);
     }
 
+    /**
+     * The velocity "right" corresponding to the head yaw
+     * @return Velocity double
+     */
     @Override
     public double right() {
         return getMovementSpeed() * -calibrate(true);
     }
 
-   /* private void oldMovement() {
+    /**
+     * Old movement system, simply going forward
+     */
+    @Deprecated
+    private void oldMovement() {
         // look follow
         if (this.actor.getAi().action.getAction().equals(ActorAction.Actions.FOLLOW)) {
             this.actor.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, this.actor.getAi().action.getPlayerFollow().getEyePos());
@@ -98,8 +114,11 @@ public class ActorMovement implements IMovement {
                 this.actor.addVelocity(this.forward(), 0, this.right());
             }
         }
-    }*/
+    }
 
+    /**
+     * Executes the pathfinding and movement of an actor
+     */
     @Override
     public void execute() {
         if (!isStanding() && this.goal != null) {
@@ -124,6 +143,10 @@ public class ActorMovement implements IMovement {
             }
         }
     }
+
+    /**
+     * Make the actor jump
+     */
     public void jump() {
         if (pathfinder.path == null) return;
         List<BlockPos> steps = pathfinder.path.getSteps();
@@ -133,12 +156,15 @@ public class ActorMovement implements IMovement {
             if (next.getY() > current.getY() && next.getY()<=1.25d && !isJumping) {
                 this.actor.jump();
                 this.actor.addVelocity(this.forward()+0.4f,actor.getVelocity().y,this.right());
-                isJumping=true;
+                isJumping = true;
             }
             if (next.getY()==current.getY() || next.getY()<current.getY())isJumping=false;
         }
     }
 
+    /**
+     * Different movements an actor can perform
+     */
     public enum MovementState {
         STAND,
         WALK,
@@ -147,6 +173,9 @@ public class ActorMovement implements IMovement {
         CRAWL
     }
 
+    /**
+     * All possible directions for an actor's movement
+     */
     public enum MovementDirection {
         FORWARD,
         RIGHT,

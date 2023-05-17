@@ -48,17 +48,21 @@ public class ActorEntity extends ServerPlayerEntity {
         this.ai.tick();
     }
 
+    /**
+     * Shows/hides all the toggleable layers
+     */
     public void setAllPartsVisible(boolean visible) {
-        setVisiblePart(PlayerModelPart.CAPE, visible);
-        setVisiblePart(PlayerModelPart.HAT, visible);
-        setVisiblePart(PlayerModelPart.JACKET, visible);
-        setVisiblePart(PlayerModelPart.LEFT_PANTS_LEG, visible);
-        setVisiblePart(PlayerModelPart.LEFT_SLEEVE, visible);
-        setVisiblePart(PlayerModelPart.RIGHT_PANTS_LEG, visible);
-        setVisiblePart(PlayerModelPart.RIGHT_SLEEVE, visible);
+        for (int i = 0; i < PlayerModelPart.values().length; i++) {
+            PlayerModelPart part = PlayerModelPart.values()[i];
+            setVisiblePart(part, visible);
+        }
     }
 
-
+    /**
+     * Shows/hides a toggleable layer
+     * @param modelPart A layer to change
+     * @param visible The visibility
+     */
     public void setVisiblePart(PlayerModelPart modelPart, boolean visible) {
         int byt = this.getDataTracker().get(PLAYER_MODEL_PARTS);
 
@@ -72,15 +76,26 @@ public class ActorEntity extends ServerPlayerEntity {
         this.dataTracker.set(PLAYER_MODEL_PARTS, newByt);
     }
 
+    /**
+     * Replaces the current held item with another one
+     * @param itemStack The item to change
+     */
     public void setInHand(ItemStack itemStack) {
         PlayerInventory inv = this.getInventory();
         inv.setStack(inv.selectedSlot, itemStack);
     }
 
+    /**
+     * Change the selected slot
+     */
     public void setHotbar(int hotbar) {
         this.getInventory().selectedSlot = MathHelper.clamp(hotbar, 0, 9);
     }
 
+    /**
+     * Copy an existing inventory to the actor's inventory
+     * @param playerInventory The inventory to copy
+     */
     public void copyInventoryFrom(PlayerInventory playerInventory) {
         PlayerInventory npcInventory = this.getInventory();
 
