@@ -6,10 +6,13 @@ import com.lumaa.act.item.ActItems;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
+import net.fabricmc.fabric.api.networking.v1.PacketSender;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.network.packet.s2c.play.PlayerListS2CPacket;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.world.World;
@@ -30,17 +33,19 @@ public class ActMod implements ModInitializer {
     public void onInitialize() {
         npc.register();
         ActItems.registerModItems();
-        actors=npc.getActorsList();
-        ServerWorldEvents.LOAD.register(this::onWorldLoad);
+        actors = npc.getActorsList();
+        ServerPlayConnectionEvents.JOIN.register(this::onPlayerJoin);
         ServerLifecycleEvents.SERVER_STOPPING.register(this::onServerStopping);
+
         // print mod mini-motto
         print("Actors are on stage");
     }
 
-    private void onWorldLoad(MinecraftServer server, ServerWorld world) {
-        if (world==null || server==null)return;
-        if (world.getRegistryKey()==World.OVERWORLD) {
-                ActorData.loadActorData(server, world);
+    private void onPlayerJoin(ServerPlayNetworkHandler serverPlayNetworkHandler, PacketSender packetSender, MinecraftServer server) {
+        if (server == null) return;
+        World world = serverPlayNetworkHandler.player.getWorld();
+        if (world.getRegistryKey() == World.OVERWORLD) {
+            ActorData.loadActorData(server, packetSender, (ServerWorld) world);
         }
     }
 

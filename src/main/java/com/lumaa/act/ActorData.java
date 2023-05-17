@@ -2,12 +2,12 @@ package com.lumaa.act;
 
 import com.lumaa.act.entity.ActorEntity;
 import com.mojang.authlib.GameProfile;
+import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.network.packet.s2c.play.PlayerListS2CPacket;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 
 import java.io.File;
@@ -49,7 +49,7 @@ public class ActorData {
         }
     }
 
-    public static void loadActorData(MinecraftServer server, ServerWorld world) {
+    public static void loadActorData(MinecraftServer server, PacketSender packetSender, ServerWorld world) {
         List<ActorEntity> actors = new ArrayList<>();
         try {
             File file = new File(server.getRunDirectory(), ACTOR_DATA_FILE);
@@ -65,10 +65,8 @@ public class ActorData {
                 double z = nbt.getDouble("Z");
                 float yaw = nbt.getFloat("Yaw");
                 float pitch = nbt.getFloat("Pitch");
-                float Health=nbt.getFloat("Health");
-                String ActorWorld = nbt.getString("World");
-
-
+                float health =nbt.getFloat("Health");
+                String actorWorld = nbt.getString("World");
 
                 GameProfile gameProfile = new GameProfile(uuid, name);
                 ActorEntity actorEntity = new ActorEntity(server, world, gameProfile);
@@ -76,33 +74,21 @@ public class ActorData {
                 actors.add(actorEntity);
                 System.out.println("Actors: " + actors);
 
-                if (!Objects.equals(actorEntity.getWorld().toString(), ActorWorld)) continue;
+                if (!Objects.equals(actorEntity.getWorld().toString(), actorWorld)) continue;
 
-                List<ServerPlayerEntity> players = world.getPlayers();
-                if (world.getEntity(uuid) == null && !players.isEmpty()) {
+                packetSender.sendPacket(actorEntity.createSpawnPacket());
+                packetSender.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.ADD_PLAYER, actorEntity));
 
-                    System.out.println("Players: " + players);
+                for (int j = 0; j < actors.size(); j++) {
+                    if (actorEntity.getHealth()<=0) continue;
+                    world.spawnEntity(actorEntity);
 
-                    for (ServerPlayerEntity p : players) {
-                        p.networkHandler.sendPacket(actorEntity.createSpawnPacket());
-                        p.networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.ADD_PLAYER, actorEntity));
+                    System.out.println("Spawned: " + name);
 
-                        System.out.println("PACKET INFO SENT");
+                    actorEntity.teleport(world, x, y + 0.1d, z, yaw, pitch);
 
-                    }
-                    for (int j = 0; j < actors.size(); j++) {
-                        if(actorEntity.getHealth()<=0)continue;
-                        world.spawnEntity(actorEntity);
-
-                        System.out.println("Spawned: " + name);
-
-                        actorEntity.teleport(world, x, y + 0.1d, z, yaw, pitch);
-
-                        System.out.println("Teleported: " + world + ", " + y);
-                    }
+                    System.out.println("Teleported: " + world + ", " + y);
                 }
-                else
-                    System.out.println("PLAYER LIST IS EMPTY");
             }
         } catch (IOException e) {
             e.printStackTrace();
