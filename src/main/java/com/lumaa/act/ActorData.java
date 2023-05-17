@@ -21,6 +21,9 @@ import java.util.UUID;
 
 public class ActorData {
     private static final String ACTOR_DATA_FILE = "ActorData.dat";
+    private static final String WORLD_DATA_DIR = "data/";
+
+    // TODO: Save and load inventory
     public static void saveActorData(List<ActorEntity> actors) {
         if (actors.isEmpty()) return;
 
@@ -42,7 +45,8 @@ public class ActorData {
         NbtCompound root = new NbtCompound();
         root.put("Actors", nbtList);
         try {
-            File file = new File(actors.get(0).getServer().getRunDirectory(), ACTOR_DATA_FILE);
+
+            File file = new File(actors.get(0).getServer().getRunDirectory(), WORLD_DATA_DIR + ACTOR_DATA_FILE);
             NbtIo.writeCompressed(root, new FileOutputStream(file));
         } catch (IOException e) {
             e.printStackTrace();
@@ -52,7 +56,7 @@ public class ActorData {
     public static void loadActorData(MinecraftServer server, PacketSender packetSender, ServerWorld world) {
         List<ActorEntity> actors = new ArrayList<>();
         try {
-            File file = new File(server.getRunDirectory(), ACTOR_DATA_FILE);
+            File file = new File(server.getRunDirectory(), WORLD_DATA_DIR + ACTOR_DATA_FILE);
             if (!file.exists()) return;
             NbtCompound root = NbtIo.readCompressed(new FileInputStream(file));
             NbtList nbtList = root.getList("Actors", 10);
@@ -81,6 +85,7 @@ public class ActorData {
 
                 for (int j = 0; j < actors.size(); j++) {
                     if (actorEntity.getHealth()<=0) continue;
+                    actorEntity.setHealth(health);
                     world.spawnEntity(actorEntity);
 
                     System.out.println("Spawned: " + name);
