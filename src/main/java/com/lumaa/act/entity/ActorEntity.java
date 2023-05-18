@@ -124,6 +124,14 @@ public class ActorEntity extends ServerPlayerEntity {
         return ai;
     }
 
+
+
+    public void takeKnockback(float strength, double xRatio, double zRatio) {
+        this.setVelocity(this.getVelocity().add(xRatio * strength, 0.1D * strength, zRatio * strength));
+        this.velocityDirty = true;
+    }
+
+
     public void writeToSpawnPacket() {
         PacketByteBuf buf = PacketByteBufs.create();
         buf.writeVarInt(this.getId());
