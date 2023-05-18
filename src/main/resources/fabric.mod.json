@@ -20,7 +20,8 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "com.lumaa.act.ActMod"
+      "com.lumaa.act.ActMod",
+      "com.lumaa.act.ActorData"
     ]
   },
   "mixins": [

@@ -124,7 +124,7 @@ public class ActorEntity extends ServerPlayerEntity {
         return ai;
     }
 
-    protected void writeToSpawnPacket() {
+    public void writeToSpawnPacket() {
         PacketByteBuf buf = PacketByteBufs.create();
         buf.writeVarInt(this.getId());
         buf.writeUuid(this.gameProfile.getId());
