@@ -1,7 +1,6 @@
 # Act
 
-THIS BRANCH IS USED TO TESTING NEW IMPLEMENTS
-
+**THIS BRANCH IS USED TO TESTING NEW IMPLEMENTS**
 
 <sup>Act as if you had friends... But you are in a singleplayer world.</sup>
 
@@ -26,7 +25,7 @@ In the future, Actors will be able to move using a user-defined path. or defend 
 
 ## Actor AI
 Actor AI is what powers an Actor's movement, it uses hard equations and conditions to make an Actor go from one place to another. Actor AI doesn't use any of Minecraft's AI.\
-Actor AI is moving from axis to axis (Y axis is still bugged) instead of moving blocks to blocks or just going forward.
+Actor AI is moving from axis to axis instead of moving blocks to blocks or just going forward.
 
 ## Build
 To build the mod, you need to have [git](https://git-scm.com/downloads).\
@@ -43,10 +42,8 @@ Once the loading is done:
 - Install the latest version of [Fabric API](https://modrinth.com/mod/fabric-api)
 
 ## Known Bugs
-- Actor entities do not save
 - Actor entity does not have knockback when damaged by entity or player
-- `/actor` "*ign*" parameter is not case-sensitive
 - TPS drops to 0 when loading Actor
 - Actor AI sometimes makes the entity turn on itself (then continues)
-- Actor AI has a hard time with obstacles, and blocks that aren't at his level
+- Actor AI has a hard time with obstacles
 

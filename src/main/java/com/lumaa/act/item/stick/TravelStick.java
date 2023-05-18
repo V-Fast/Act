@@ -21,11 +21,11 @@ public class TravelStick extends Item {
         super(settings.maxCount(1));
     }
 
+    //TODO: When R-Click, put ActorId in nbt
     @Override
     public ActionResult useOnEntity(ItemStack stack, PlayerEntity user, LivingEntity entity, Hand hand) {
         if (entity instanceof ActorEntity actor && actor.canSee(user)) {
             user.playSound(SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.PLAYERS, 1f, 1f);
-            //actor.getAi().followEntity(user);
             actor.getAi().moveToEntity(user, ActorMovement.MovementState.RUN);
             if (actor.getAi().action.getPlayerFollow()!=null) actor.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, actor.getAi().action.getPlayerFollow().getPos());
             return ActionResult.SUCCESS;

@@ -16,6 +16,7 @@ public class FollowStick extends Item {
         super(settings.maxCount(1));
     }
 
+    //TODO: Make it actually Follow (fix r-click twice to follow)
     @Override
     public ActionResult useOnEntity(ItemStack stack, PlayerEntity user, LivingEntity entity, Hand hand) {
         if (entity instanceof ActorEntity) {
