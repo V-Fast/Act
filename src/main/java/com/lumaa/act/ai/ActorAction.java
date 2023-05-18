@@ -1,7 +1,13 @@
 package com.lumaa.act.ai;
 
+import com.lumaa.act.entity.ActorEntity;
+import net.minecraft.command.argument.EntityAnchorArgumentType;
 import net.minecraft.entity.EntityPose;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 
 public class ActorAction {
     public ActorAI actorAI;
@@ -51,6 +57,21 @@ public class ActorAction {
     public void follow(PlayerEntity player) {
         this.playerFollow = player;
         this.setAction(Actions.FOLLOW);
+    }
+
+    // To test
+    public ActionResult placeBlock(BlockPos position) {
+        ActorEntity actorEntity = this.actorAI.actor;
+        actorEntity.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, position.toCenterPos());
+        BlockHitResult raycast = new BlockHitResult(position.toCenterPos(), Direction.DOWN, position, false);
+        return actorEntity.interactionManager.interactBlock(actorEntity, actorEntity.getWorld(), actorEntity.getInventory().getMainHandStack(), actorEntity.preferredHand, raycast);
+    }
+
+    // To test
+    public void breakBlock(BlockPos position) {
+        ActorEntity actorEntity = this.actorAI.actor;
+        actorEntity.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, position.toCenterPos());
+        actorEntity.interactionManager.tryBreakBlock(position);
     }
 
     public void setAction(Actions actorAction) {
