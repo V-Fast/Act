@@ -6,12 +6,13 @@
   "name": "Act",
   "description": "Act as if you had friends... But you are in a singleplayer world.",
   "authors": [
-    "LumaaDev"
+updat    "LumaaDev",
+    "tanishisherewithhh"
   ],
   "contact": {
-    "homepage": "https://lumaa.brebond.com/",
-    "sources": "https://github.com/lumaa-dev/Act",
-    "issues": "https://github.com/lumaa-dev/Act/issues"
+    "homepage": "https://lumaa-dev.github.io/#/",
+    "sources": "https://github.com/V-Fast/Act",
+    "issues": "https://github.com/V-Fast/Act/issues"
   },
 
   "license": "MIT",
