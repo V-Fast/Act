@@ -153,7 +153,7 @@ public class ActorMovement implements IMovement {
         if (steps.size() > 1) {
             BlockPos current = steps.get(0);
             BlockPos next = steps.get(1);
-            if (next.getY() > current.getY() && next.getY()<=1.25d && !isJumping) {
+            if (next.getY() > current.getY() && (next.getY()-current.getY())<=1.25d && !isJumping) {
                 this.actor.jump();
                 this.actor.addVelocity(this.forward()+0.4f,actor.getVelocity().y,this.right());
                 isJumping = true;

@@ -103,12 +103,10 @@ public class Pathfinder {
     private boolean isNearGoal(@Nullable BlockPos goal) {
         boolean following = this.action.getAction().equals(ActorAction.Actions.FOLLOW);
         if (goal == null) {
-            System.out.println("Current Goal: "+this.currentGoal);
             if (this.currentGoal == null) {
                 return true;
             } else {
                 goal = this.currentGoal;
-                System.out.println("Goal: "+goal);
             }
         }
         double range = 0.85d;
@@ -119,7 +117,6 @@ public class Pathfinder {
         // Check if the actor is within the horizontal and vertical range of its goal
         boolean isInRange = this.actor.getPos().isInRange(goal.toCenterPos(), range);
         boolean isWithinVerticalRange = Math.abs(this.actor.getY() - goal.getY()) <= 2;
-        System.out.println("IsinRange: "+isInRange+", Vertical: "+isWithinVerticalRange);
         return isInRange && isWithinVerticalRange;
     }
 
