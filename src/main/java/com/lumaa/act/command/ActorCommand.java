@@ -12,7 +12,7 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.math.Vec3d;
 
 import java.io.BufferedReader;
@@ -56,7 +56,7 @@ public class ActorCommand {
                 actorEntity.teleport(s.getWorld(), pos.getX(), pos.getY(), pos.getZ(), (s.getEntity() != null) ? s.getEntity().getYaw() : 0, (s.getEntity() != null) ? s.getEntity().getPitch() : 0);
                 source.sendMessage(Text.literal("Spawned " + username));
             }
-            else source.sendMessage(Text.literal("Cannot spawn " + username +", since it already exists in another dimension"));
+            else source.sendMessage(Text.literal("Cannot spawn " + username + ", since it already exists in another dimension").formatted(Formatting.RED));
             // ONLY FOR PATHFINDING TEST
             // actorEntity.getAi().walkTo(new BlockPos((int) pos.getX(), (int) pos.getY() - 1, (int) pos.getZ()));
             return 1;
