@@ -43,6 +43,8 @@ Once the loading is done:
 
 ## Known Bugs
 - TPS drops to 0 when loading Actor
-- Actor AI sometimes makes the entity turn on itself (then continues) (*to re-confirm*)
+- Actor entity does not have knockback when damaged by entity or player
+- Actor AI sometimes makes the entity turn on itself (then continues)
 - Actor AI has a hard time with obstacles
+- Actor cannot fully break a block
 
