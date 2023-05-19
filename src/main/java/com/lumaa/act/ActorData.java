@@ -41,7 +41,7 @@ public class ActorData implements ModInitializer {
             NbtCompound nbt = readNbtFromFile(Objects.requireNonNull(server.getWorld(World.OVERWORLD)));
             if (nbt != null) {
                 for (ServerWorld world : server.getWorlds()) {
-                    worldName = String.valueOf(world.getServer().getSavePath(WorldSavePath.ROOT).toFile().getAbsoluteFile());
+                    worldName = String.valueOf((world.getServer().getSavePath(WorldSavePath.ROOT).toFile().getName()));
                     List<ActorEntity> actors = loadActorEntities(nbt, server, worldName);
                     System.out.println("Loaded actors for world " + worldName + ": " + actors);
 
@@ -65,8 +65,9 @@ public class ActorData implements ModInitializer {
             NbtCompound nbt = new NbtCompound();
             saveAllActors(server,nbt);
             // Save the NBT data to a file
-
-            writeNbtToFile(nbt, Objects.requireNonNull(server.getWorld(World.OVERWORLD)));
+            for (ServerWorld world:server.getWorlds()) {
+                writeNbtToFile(nbt, world);
+            }
             File worldDirectory = Objects.requireNonNull(server.getWorld(World.OVERWORLD)).getServer().getSavePath(WorldSavePath.ROOT).toFile();
             File dataDirectory = new File(worldDirectory, "data");
             File file = new File(dataDirectory, ACTORS_FILE);
@@ -82,7 +83,7 @@ public class ActorData implements ModInitializer {
      */
     private void saveAllActors(MinecraftServer server,NbtCompound nbt) {
         for (ServerWorld world : server.getWorlds()) {
-            worldName= String.valueOf(world.getServer().getSavePath(WorldSavePath.ROOT).toFile().getAbsoluteFile());
+            worldName= String.valueOf(world.getServer().getSavePath(WorldSavePath.ROOT).toFile().getName());
             List<ActorEntity> actorsInWorld = world.getEntitiesByType(EntityType.PLAYER, (entity) -> entity instanceof ActorEntity).stream().map(entity -> (ActorEntity) entity).collect(Collectors.toList());
             saveActorEntities(actorsInWorld, nbt,worldName);
 
@@ -159,26 +160,17 @@ public class ActorData implements ModInitializer {
                 UUID uuid = actorNtb.getUuid("UUID");
 
                 GameProfile profile = new GameProfile(uuid, name);
-                ServerWorld world;
-                switch (ActorDimension) {
-                    case "minecraft[overworld]":
-                        world = server.getWorld(World.OVERWORLD);
-
-                    case "minecraft[nether]":
-                        world = server.getWorld(World.NETHER);
-
-                    case "minecraft[end]":
-                        world = server.getWorld(World.END);
-
-                    default:
-                        world = server.getWorld(World.OVERWORLD);
-                }
+                ServerWorld world = switch (ActorDimension) {
+                    case "minecraft:the_nether" -> server.getWorld(World.NETHER);
+                    case "minecraft:the_end" -> server.getWorld(World.END);
+                    default -> server.getWorld(World.OVERWORLD);
+                };
                 ActorEntity actor = new ActorEntity(server, world, profile);
                 actor.refreshPositionAndAngles(x, y, z, yaw, pitch);
                 actor.setHealth(health);
 
-                System.out.println("ActorWorld: " + ActorWorld);
-                System.out.println("Actor.getWorld().toString(): " + actor.getWorld().toString());
+                System.out.println("ActorDimension: " + ActorDimension);
+                System.out.println("Actor.world.getRegistryKey().getValue().toString(): " +  actor.world.getRegistryKey().getValue().toString());
 
                 //Check for world and Dimension
                 if (!Objects.equals(ActorWorld, actor.getWorld().toString())) continue;

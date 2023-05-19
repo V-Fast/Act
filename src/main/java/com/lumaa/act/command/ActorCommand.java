@@ -10,6 +10,7 @@ import net.minecraft.network.packet.s2c.play.PlayerListS2CPacket;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
@@ -33,33 +34,34 @@ public class ActorCommand {
             ServerCommandSource source = command.getSource();
             Vec3d pos = source.getPosition();
             ActorEntity actorEntity = new ActorEntity(source.getServer(), source.getWorld(), new GameProfile(uuid, username));
-            actors.add(actorEntity);
-
-            players = command.getSource().getWorld().getPlayers().stream().filter(serverPlayerEntity -> serverPlayerEntity.getClass() == ServerPlayerEntity.class).toList();
-            for (ServerPlayerEntity p : players) {
-                p.networkHandler.sendPacket(actorEntity.createSpawnPacket());
-                p.networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.ADD_PLAYER, actorEntity));
+            boolean entityExists = false;
+            for (ServerWorld world : source.getServer().getWorlds()) {
+            if (world.getEntity(uuid) != null) { //If this is true, then it means there is an actor with the same uuid in another dimension and therefore won't spawn it.
+                entityExists = true;
+                break;
+               }
             }
+            if (!entityExists) {
+                actors.add(actorEntity);
 
-            source.getWorld().spawnEntity(actorEntity);
+                players = command.getSource().getWorld().getPlayers().stream().filter(serverPlayerEntity -> serverPlayerEntity.getClass() == ServerPlayerEntity.class).toList();
+                for (ServerPlayerEntity p : players) {
+                    p.networkHandler.sendPacket(actorEntity.createSpawnPacket());
+                    p.networkHandler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.ADD_PLAYER, actorEntity));
+                }
 
-            ServerCommandSource s = command.getSource();
-            actorEntity.teleport(s.getWorld(), pos.getX(), pos.getY(), pos.getZ(), (s.getEntity() != null) ? s.getEntity().getYaw() : 0, (s.getEntity() != null) ? s.getEntity().getPitch() : 0);
-            source.sendMessage(Text.literal("Spawned " + username));
+                source.getWorld().spawnEntity(actorEntity);
 
+                ServerCommandSource s = command.getSource();
+                actorEntity.teleport(s.getWorld(), pos.getX(), pos.getY(), pos.getZ(), (s.getEntity() != null) ? s.getEntity().getYaw() : 0, (s.getEntity() != null) ? s.getEntity().getPitch() : 0);
+                source.sendMessage(Text.literal("Spawned " + username));
+            }
+            else source.sendMessage(Text.literal("Cannot spawn " + username +", since it already exists in another dimension"));
             // ONLY FOR PATHFINDING TEST
             // actorEntity.getAi().walkTo(new BlockPos((int) pos.getX(), (int) pos.getY() - 1, (int) pos.getZ()));
             return 1;
         }
 
-    public List<ActorEntity> getActorsList()
-    {
-        return actors;
-    }
-    public List<ServerPlayerEntity> getPlayers()
-    {
-        return players;
-    }
 
     private static ArgumentBuilder<ServerCommandSource, ?> argument() {
         return CommandManager.argument("ign", MessageArgumentType.message());
