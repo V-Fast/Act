@@ -81,6 +81,7 @@ modrinth {
 	versionNumber = project.version // will fail if it already exists
 	versionType = "release" // "alpha" "beta" or "release"
 	uploadFile = remapJar // loom = "remapJar" (else "jar")
+	changelog = rootProject.file("CHANGELOG.md").text
 	gameVersions = ["1.19.4"] // array
 	loaders = ["fabric"]
 	dependencies {
