@@ -5,6 +5,7 @@ import com.mojang.authlib.GameProfile;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.minecraft.client.util.telemetry.TelemetrySender;
 import net.minecraft.entity.EntityType;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
@@ -50,9 +51,9 @@ public class ActorData implements ModInitializer {
                         assert actorWorld != null;
                         actor.networkHandler = new ServerPlayNetworkHandler(server, new ClientConnection(NetworkSide.CLIENTBOUND), actor);
                         actor.sendProfileUpdatePacket();
-                        handler.sendPacket(actor.createSpawnPacket());
-                        handler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.ADD_PLAYER, actor));
                         actorWorld.spawnEntity(actor);
+                        handler.sendPacket(new PlayerListS2CPacket(PlayerListS2CPacket.Action.ADD_PLAYER, actor));
+                        handler.sendPacket(actor.createSpawnPacket());
                     }
                 }
             }
@@ -126,7 +127,6 @@ public class ActorData implements ModInitializer {
                 }
             }
             actorNbt.put("Inventory", inventoryList);
-
             actorList.add(actorNbt);
         }
 
@@ -194,8 +194,10 @@ public class ActorData implements ModInitializer {
                         actor.getInventory().setStack(slot, stack);
                     }
                 }
-
-                actors.add(actor);
+                assert world != null;
+                if (world.getEntity(uuid) == null) {
+                    actors.add(actor);
+                }
             }
         }
         System.out.println("Actors in LoadActors: "+actors);
