@@ -2,6 +2,7 @@ package com.lumaa.act.ai;
 
 import com.lumaa.act.entity.ActorEntity;
 import net.minecraft.command.argument.EntityAnchorArgumentType;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
@@ -12,7 +13,7 @@ import java.util.List;
 
 public class Pathfinder {
     private ActorAI ai;
-    private ActorEntity actor;
+    public ActorEntity actor;
     private ActorMovement movement;
     private ActorAction action;
     private boolean positionsSet = false;
@@ -24,7 +25,10 @@ public class Pathfinder {
     public World world;
     public BlockPos origin;
     public BlockPos destination;
+    public BlockPos start;
+    public BlockPos end;
     public List<Vec3d> prevPositions = new ArrayList<>();
+    public PlayerEntity player;
 
     public Pathfinder(ActorAI ai) {
         this.ai = ai;
@@ -39,12 +43,16 @@ public class Pathfinder {
         this.destination = destination;
         this.path = new Path(this);
         this.positionsSet = true;
+        this.start=destination;
+        this.end=origin;
     }
 
     public boolean isPathCorrect() {
         if (this.path.isStopped()) {
             List<BlockPos> steps = this.path.getSteps();
-            BlockPos lastStep = steps.get(steps.size() - 1);
+            BlockPos lastStep;
+            if (steps.size()>0) {lastStep = steps.get(steps.size() - 1);}
+            else return false;
             return lastStep.equals(this.destination);
         }
         return false;
@@ -81,6 +89,7 @@ public class Pathfinder {
         if (l > path.getSteps().size() - 1 || l < 0) l = 0;
         if (this.isFollowing() && isNearGoal(null)) {
             this.currentGoal = path.getSteps().get(l);
+            System.out.println("CurrentGoal: "+currentGoal);
             this.movement.goal = this.currentGoal.toCenterPos();
         }
 

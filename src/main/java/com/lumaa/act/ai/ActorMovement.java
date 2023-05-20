@@ -128,7 +128,7 @@ public class ActorMovement implements IMovement {
             if (this.actor.getAi().action.getAction().equals(ActorAction.Actions.FOLLOW)) {
                 this.actor.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, this.actor.getAi().action.getPlayerFollow().getPos());
             }
-            if (this.pathfinder.path.isStopped() && this.pathfinder.isPathCorrect()) {
+            if (this.pathfinder.path.isStopped()/* && this.pathfinder.isPathCorrect()*/) {
                 pathfinder.setPathGoals();
 
                 if (pathfinder.isFinishedFollowing()) {

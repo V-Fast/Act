@@ -2,7 +2,9 @@ package com.lumaa.act.ai;
 
 import com.lumaa.act.ActMod;
 import com.lumaa.act.entity.ActorEntity;
+import com.lumaa.act.item.stick.FollowStick;
 import net.minecraft.block.BlockState;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.BlockPos;
 
 import java.util.ArrayList;
@@ -12,9 +14,10 @@ public class Path {
     private Pathfinder pathfinder;
     private BlockPos origin;
     private BlockPos destination;
+    private BlockPos start;
+    private BlockPos end;
     private int iterations = 0;
     private boolean stopped = false;
-
     private BlockPos lastStep;
     private ActorEntity actor;
     private BlockPos currentStep;
@@ -24,30 +27,32 @@ public class Path {
     private PathDirection currentDir;
 
     private final int maxIterations = 100;
+    private PlayerEntity player;
 
     public Path(Pathfinder pathfinder) {
         this.pathfinder = pathfinder;
-        this.origin = pathfinder.origin;
-        this.destination = pathfinder.destination;
+        this.actor=pathfinder.actor;
+       // this.origin = pathfinder.origin;
+       // this.destination = pathfinder.destination;
         this.lastStep = pathfinder.origin;
         this.currentStep = pathfinder.origin;
+        this.start=pathfinder.start;
+        this.end=pathfinder.end;
         this.lastDir = null;
+        this.player= FollowStick.getPlayer();
     }
 
     public void tick() {
-        if (!stopped) this.nextStep();
+        if (!stopped) this.nextStep(player);
     }
 
-    private void nextStep() {
+    private void nextStep(PlayerEntity player) {
+         this.origin=actor.getBlockPos();
+         this.destination = player.getBlockPos();
+        System.out.println("Destination: "+this.destination);
+
         this.lastStep = this.currentStep;
 
-        if (this.lastStep.equals(this.destination) || this.getIterations() >= this.maxIterations) {
-            if (!this.stopped) {
-                this.stopPath();
-                this.steps.add(this.lastStep);
-                return;
-            }
-        }
 
         if (this.lastStep.getY() == destination.getY()) {
             this.lastDir = this.currentDir;
@@ -75,7 +80,49 @@ public class Path {
                 if (optimized(this.lastDir, this.currentDir)) this.steps.add(step);
             }
         }
+        System.out.println("Steps in nextStep: "+steps.size());
+
+        // Second path
+        if (this.lastStep.equals(this.destination)) { // Start second path only when first path is complete
+            if (this.end != null && (this.lastStep.equals(this.end) || this.getIterations() >= this.maxIterations)) {
+                if (!this.stopped) {
+                    this.stopPath();
+                    this.steps.add(this.lastStep);
+                    return;
+                }
+            }
+
+            if (this.end != null && this.lastStep.getY() == end.getY()) {
+                this.lastDir = this.currentDir;
+                this.currentDir = findDirection();
+
+                int x = 0;
+                int z = 0;
+                switch (this.currentDir) {
+                    case NORTH -> x = 1;
+                    case SOUTH -> x = -1;
+                    case EAST -> z = 1;
+                    case WEST -> z = -1;
+                }
+
+
+                BlockPos step2 = this.lastStep.add(x, 0, z);
+                if (walkable(step2)) {
+                    this.currentStep = step2;
+                    if (optimized(this.lastDir, this.currentDir)) this.steps.add(step2);
+                }
+            } else if (this.end != null) {
+                BlockPos step2 = this.lastStep.add(0, end.getY() > start.getY() ? 1 : -1, 0);
+                if (walkable(step2)) {
+                    this.currentStep = step2;
+                    if (optimized(this.lastDir, this.currentDir)) this.steps.add(step2);
+                }
+            }
+        }
     }
+
+
+
 
     /**
      * Changes the head orientation depending on the north, south, east and west

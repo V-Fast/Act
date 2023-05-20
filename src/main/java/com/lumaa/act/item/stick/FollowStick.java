@@ -15,6 +15,7 @@ public class FollowStick extends Item {
     public FollowStick(Settings settings) {
         super(settings.maxCount(1));
     }
+    private static PlayerEntity player;
 
     //TODO: Make it actually Follow (fix r-click twice to follow)
     @Override
@@ -22,17 +23,22 @@ public class FollowStick extends Item {
         if (entity instanceof ActorEntity) {
             ActorEntity actor = (ActorEntity) entity;
             boolean follows = actor.getAi().action.getAction().equals(ActorAction.Actions.FOLLOW);
-
+            player=user;
             user.playSound(SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.PLAYERS, 1f, follows ? 0.8f : 1f);
 
             if (follows) {
                 actor.getAi().action.setAction(ActorAction.Actions.NONE);
+                //actor.getAi().movement.pathfinder.path.stopPath();
             } else {
                 actor.getAi().followEntity(user);
             }
             return ActionResult.SUCCESS;
         }
         return ActionResult.FAIL;
+    }
+    public static PlayerEntity getPlayer()
+    {
+        return player;
     }
 
     @Override

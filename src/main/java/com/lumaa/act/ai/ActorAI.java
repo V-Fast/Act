@@ -30,10 +30,10 @@ public class ActorAI {
         this.movement.movementState = state;
         this.movement.goal = pos;
         // Check if the player's position is reachable
-        if (!this.movement.pathfinder.isPathCorrect()) {
+     /*   if (!this.movement.pathfinder.isPathCorrect()) {
             // The player's position is not reachable, stop the actor
             this.movement.pathfinder.path.stop();
-        }
+        }*/
     }
 
     public void walkTo(BlockPos pos) {
