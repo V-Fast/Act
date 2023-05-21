@@ -4,12 +4,14 @@ import com.lumaa.act.ai.ActorMovement;
 import com.lumaa.act.ai.Pathfinder;
 import com.lumaa.act.entity.ActorEntity;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.world.World;
 
 import java.util.ArrayList;
@@ -75,10 +77,15 @@ public class Path {
         //setMovementState();
         keepMoving = true;
         moveTowardsPlayer(actor, player, player.getMovementSpeed()+0.1f, 3d);
-        //stopMoving();
+        if(actor.isDead()) stopMoving();
  /*for (BlockPos steps : steps) {
  actor.getAi().moveTo(ActorMovement.MovementState.WALK,new Vec3d(steps.getX(),steps.getY(),steps.getZ()));
  }*/
+    }
+
+    public static void isUnderWater()
+    {
+
     }
 
     public static boolean runToFollow() {
@@ -96,6 +103,19 @@ public class Path {
             movementState = MovementState.STAND;
         }
     }
+    public static void swimUp(ActorEntity actor) {
+        Vec3d vec;
+        if (actor.isSubmergedInWater() || actor.isInLava()) { // Check if the actor is in water
+            if(actor.isTouchingWater())vec = new Vec3d(0, -0.001, 0);
+            else vec = new Vec3d(0, 1, 0); // Create a vector pointing upwards
+            actor.setSwimming(true);
+            actor.setVelocity(vec); // Set the actor's velocity to the upwards vector
+        }
+        else {
+            actor.setSwimming(false);
+        }
+    }
+
 
     public static void moveTowardsPlayer(ActorEntity actor, PlayerEntity player2, double speed, double downSpeed) {
         movementThread = new Thread(() -> {
@@ -108,44 +128,58 @@ public class Path {
                     if (dy < 0) {
                         vec = vec.subtract(0, downSpeed, 0);
                     } else {
-                        vec = new Vec3d(vec.x, 0, vec.z);
+                        vec = new Vec3d(vec.x, -100, vec.z);
                     }
-                    if (shouldJump(actor)||(actor.getY()<player2.getY() && player2.getY()-actor.getY()<=1.07d)) {
+                    if (shouldJump(actor)) {
+                        System.out.println("Jumping"); // Print a message when the actor jumps
                         actor.jump();
+                        Vec3d velocity = actor.getVelocity();
+                        actor.setVelocity(velocity.x, velocity.y * 0.5, velocity.z); // Reduce the vertical velocity to make the jump lower
                     }
+
                     vec = vec.normalize().multiply(speed);
-                    actor.setVelocity(vec);
-                }
-                lookAt(actor, player2);
-                // Check for blocks below the actor
-                World world = actor.getEntityWorld();
-                BlockPos posBelowActor = actor.getBlockPos().down();
-                Block blockBelowActor = world.getBlockState(posBelowActor).getBlock();
-                if (!(actor.getY() > player2.getY())) {
-                    if (blockBelowActor == Blocks.AIR || blockBelowActor == Blocks.WATER || blockBelowActor == Blocks.LAVA) { // If there's no block below the actor or it's a water/lava block
-                        // Check for blocks beside the empty block
+
+                    // Check for holes or obstacles in the actor's path
+                    World world = actor.getEntityWorld();
+                    BlockPos posInFrontOfActor = actor.getBlockPos().offset(direction);
+                    Block blockInFrontOfActor = world.getBlockState(posInFrontOfActor).getBlock();
+                    if (blockInFrontOfActor == Blocks.AIR || blockInFrontOfActor == Blocks.CAVE_AIR || blockInFrontOfActor == Blocks.VOID_AIR) { // If there's a hole in front of the actor
+                        System.out.println("Hole in front of actor"); // Print a message when there's a hole in front of the actor
+                        // Check for blocks beside the hole
                         Direction[] directionsToCheck = {Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST};
                         for (Direction dir : directionsToCheck) { // Check for blocks in all four directions
-                            BlockPos posBesideEmptyBlock = posBelowActor.offset(dir);
-                            Block blockBesideEmptyBlock = world.getBlockState(posBesideEmptyBlock).getBlock();
-                            if (blockBesideEmptyBlock != Blocks.AIR && blockBesideEmptyBlock != Blocks.WATER && blockBesideEmptyBlock != Blocks.LAVA) { // If there's a solid block beside the empty block
+                            BlockPos posBesideHole = posInFrontOfActor.offset(dir);
+                            Block blockBesideHole = world.getBlockState(posBesideHole).getBlock();
+                            if (blockBesideHole != Blocks.AIR && blockBesideHole != Blocks.CAVE_AIR && blockBesideHole != Blocks.VOID_AIR) { // If there's a solid block beside the hole
+                                System.out.println("Solid block beside hole: " + dir); // Print a message when there's a solid block beside the hole
                                 // Move towards the solid block
-                                Vec3d vecBesideEmptyBlock = new Vec3d(dir.getOffsetX(), 0, dir.getOffsetZ());
-                                vecBesideEmptyBlock.normalize().multiply(speed);
-                                actor.setVelocity(vecBesideEmptyBlock);
+                                vec = new Vec3d(dir.getOffsetX(), 0, dir.getOffsetZ());
                                 break; // Stop checking other directions
-                            }
-                            else {
-                                Vec3d NoSoldBlock = new Vec3d(0, 0, 0);
-                                actor.setVelocity(NoSoldBlock);
                             }
                         }
                     }
+
+                    actor.setVelocity(vec);
                 }
+                lookAt(actor, player2);
+                swimUp(actor);
+
+                // Check if the actor is in water and set its swimming animation
+                if (actor.isTouchingWater()) {
+                    actor.setSwimming(true);
+                } else {
+                    actor.setSwimming(false);
+                }
+
+                // Print the actor's position and velocity
+                System.out.println("Actor position: " + actor.getPos());
+                System.out.println("Actor velocity: " + actor.getVelocity());
             }
         });
         movementThread.start();
     }
+
+
 
     public static void stopMoving() {
         keepMoving = false;
@@ -154,17 +188,29 @@ public class Path {
             movementThread = null;
         }
     }
-
     public static boolean shouldJump(ActorEntity actor) {
         World world = actor.getEntityWorld();
         BlockPos pos = actor.getBlockPos();
         Direction direction = actor.getMovementDirection();
         BlockPos offsetPos = pos.offset(direction);
-        boolean shouldJump = !world.getBlockState(offsetPos).isAir() && world.getBlockState(offsetPos.up()).isAir();
-        System.out.println("shouldJump: " + shouldJump); // Print the value of shouldJump
+        BlockState blockStateInFront = world.getBlockState(offsetPos);
+        boolean blockInFrontIsNotAir = !blockStateInFront.isAir();
+        boolean blockAboveIsAir = world.getBlockState(offsetPos.up()).isAir();
+        boolean shouldJump = blockInFrontIsNotAir && blockAboveIsAir;
+        Block blockInFront = world.getBlockState(offsetPos).getBlock();
+        if (blockInFrontIsNotAir) {
+            VoxelShape collisionShape = blockStateInFront.getCollisionShape(world, offsetPos);
+            if (collisionShape.isEmpty()||blockInFront == Blocks.GRASS||blockInFront==Blocks.SUNFLOWER||blockInFront==Blocks.TALL_GRASS||blockInFront==Blocks.LILY_OF_THE_VALLEY) {
+                shouldJump = false;
+            } else {
+                double maxY = collisionShape.getMax(Direction.Axis.Y);
+                if (maxY <= (double)actor.getStepHeight()) {
+                    shouldJump = false;
+                }
+            }
+        }
         return shouldJump;
     }
-
 
     public static void lookAt(ActorEntity actor, PlayerEntity player2) {
         double dx = player2.getX() - actor.getX();

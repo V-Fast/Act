@@ -26,6 +26,7 @@ import org.jetbrains.annotations.Nullable;
 public class ActorEntity extends ServerPlayerEntity {
     public GameProfile gameProfile;
     private ActorAI ai;
+    public boolean isFollowing=false;
 
     public ActorEntity(MinecraftServer server, ServerWorld world, GameProfile profile) {
         super(server, world, profile);
