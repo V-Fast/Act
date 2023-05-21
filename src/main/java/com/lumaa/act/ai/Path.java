@@ -76,7 +76,6 @@ public class Path {
             }
         }
     }
-    // test
 
     /**
      * Changes the head orientation depending on the north, south, east and west
