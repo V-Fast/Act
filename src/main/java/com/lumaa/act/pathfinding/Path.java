@@ -1,7 +1,5 @@
 package com.lumaa.act.pathfinding;
 
-import com.lumaa.act.ai.ActorMovement;
-import com.lumaa.act.ai.Pathfinder;
 import com.lumaa.act.entity.ActorEntity;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -150,7 +148,7 @@ public class Path {
                         for (Direction dir : directionsToCheck) { // Check for blocks in all four directions
                             BlockPos posBesideHole = posInFrontOfActor.offset(dir);
                             Block blockBesideHole = world.getBlockState(posBesideHole).getBlock();
-                            if (blockBesideHole != Blocks.AIR && blockBesideHole != Blocks.CAVE_AIR && blockBesideHole != Blocks.VOID_AIR) { // If there's a solid block beside the hole
+                            if (hasCollision(blockBesideHole)) { // If there's a solid block beside the hole
                                 System.out.println("Solid block beside hole: " + dir); // Print a message when there's a solid block beside the hole
                                 // Move towards the solid block
                                 vec = new Vec3d(dir.getOffsetX(), 0, dir.getOffsetZ());
@@ -179,7 +177,11 @@ public class Path {
         movementThread.start();
     }
 
-
+    private static boolean hasCollision(Block block) {
+        //TODO: Get all blocks from tag (put all blocks that get walked through)
+        //TODO: If block is in tag, false else true
+        return block != Blocks.AIR && block != Blocks.CAVE_AIR && block != Blocks.VOID_AIR;
+    }
 
     public static void stopMoving() {
         keepMoving = false;
