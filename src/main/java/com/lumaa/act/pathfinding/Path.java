@@ -160,8 +160,11 @@ public class Path {
         BlockPos pos = actor.getBlockPos();
         Direction direction = actor.getMovementDirection();
         BlockPos offsetPos = pos.offset(direction);
-        return !world.getBlockState(offsetPos).isAir() && world.getBlockState(offsetPos.up()).isAir();
+        boolean shouldJump = !world.getBlockState(offsetPos).isAir() && world.getBlockState(offsetPos.up()).isAir();
+        System.out.println("shouldJump: " + shouldJump); // Print the value of shouldJump
+        return shouldJump;
     }
+
 
     public static void lookAt(ActorEntity actor, PlayerEntity player2) {
         double dx = player2.getX() - actor.getX();
