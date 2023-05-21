@@ -3,6 +3,7 @@ package com.lumaa.act;
 import com.lumaa.act.command.ActorCommand;
 import com.lumaa.act.entity.ActorEntity;
 import com.lumaa.act.item.ActItems;
+import com.lumaa.act.pathfinding.Path;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
@@ -30,6 +31,7 @@ public class ActMod implements ModInitializer {
     public void onInitialize() {
         npc.register();
         ActItems.registerModItems();
+        ServerPlayConnectionEvents.DISCONNECT.register(( sender, server)->Path.stopMoving());
 
         // print mod mini-motto
         print("Actors are on stage");

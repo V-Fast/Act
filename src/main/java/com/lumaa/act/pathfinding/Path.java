@@ -3,6 +3,8 @@ package com.lumaa.act.pathfinding;
 import com.lumaa.act.ai.ActorMovement;
 import com.lumaa.act.ai.Pathfinder;
 import com.lumaa.act.entity.ActorEntity;
+import net.minecraft.block.Block;
+import net.minecraft.block.Blocks;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -27,33 +29,38 @@ public class Path {
     private static Thread movementThread = null;
 
 
-    public Path(ActorEntity actor)
-    {
-        this.actor=actor;
+    public Path(ActorEntity actor) {
+        this.actor = actor;
     }
 
 
-    public boolean isStanding() {return movementState == MovementState.STAND;}
+    public boolean isStanding() {
+        return movementState == MovementState.STAND;
+    }
 
     public static boolean isWalking() {
         return movementState == MovementState.WALK;
     }
 
     public static boolean isRunning() {
-        return movementState ==MovementState.RUN;
+        return movementState == MovementState.RUN;
     }
 
-    public static boolean isSneaking() {return movementState == MovementState.SNEAK;}
+    public static boolean isSneaking() {
+        return movementState == MovementState.SNEAK;
+    }
 
-    public static boolean isCrawling() {return movementState ==MovementState.CRAWL;}
+    public static boolean isCrawling() {
+        return movementState == MovementState.CRAWL;
+    }
 
     public static double getMovementSpeed() {
         if (isWalking()) {
             return walkSpeed;
         } else if (isRunning()) {
             return runSpeed;
-        }else if (runToFollow()) {
-          return runSpeed;
+        } else if (runToFollow()) {
+            return runSpeed;
         } else if (isCrawling()) {
             return crawlSpeed;
         } else if (isSneaking()) {
@@ -62,36 +69,35 @@ public class Path {
             return 0.0d;
         }
     }
-    public static void nextMove(PlayerEntity player, ActorEntity actor,BlockPos playerPos) {
-        playerFollow=player;
+
+    public static void nextMove(PlayerEntity player, ActorEntity actor, BlockPos playerPos) {
+        playerFollow = player;
         //setMovementState();
-        keepMoving=true;
-        moveTowardsPlayer(actor, player, player.getMovementSpeed(),3d);
-        /*for (BlockPos steps : steps) {
-            actor.getAi().moveTo(ActorMovement.MovementState.WALK,new Vec3d(steps.getX(),steps.getY(),steps.getZ()));
-        }*/
+        keepMoving = true;
+        moveTowardsPlayer(actor, player, player.getMovementSpeed()+0.1f, 3d);
+        //stopMoving();
+ /*for (BlockPos steps : steps) {
+ actor.getAi().moveTo(ActorMovement.MovementState.WALK,new Vec3d(steps.getX(),steps.getY(),steps.getZ()));
+ }*/
     }
 
     public static boolean runToFollow() {
         return actor.getPos().isInRange(playerFollow.getPos(), 3.5d);
     }
 
-    public static void setMovementState()
-    {
-        if(runToFollow())
-            movementState=MovementState.RUN;
+    public static void setMovementState() {
+        if (runToFollow())
+            movementState = MovementState.RUN;
         else
-            movementState=MovementState.WALK;
-        if(actor.isSubmergedInWater())
-            movementState=MovementState.RUN;
-        if (actor.getPos().isInRange(playerFollow.getPos(), 1.5d))
-        {
-            movementState=MovementState.STAND;
+            movementState = MovementState.WALK;
+        if (actor.isSubmergedInWater())
+            movementState = MovementState.RUN;
+        if (actor.getPos().isInRange(playerFollow.getPos(), 1.5d)) {
+            movementState = MovementState.STAND;
         }
     }
 
-    public static void moveTowardsPlayer(ActorEntity actor, PlayerEntity player2, double speed,double downSpeed) {
-        //stopMoving();
+    public static void moveTowardsPlayer(ActorEntity actor, PlayerEntity player2, double speed, double downSpeed) {
         movementThread = new Thread(() -> {
             while (keepMoving) {
                 double distance = Math.sqrt(actor.squaredDistanceTo(player2));
@@ -104,13 +110,38 @@ public class Path {
                     } else {
                         vec = new Vec3d(vec.x, 0, vec.z);
                     }
-                    if (shouldJump(actor)) {
+                    if (shouldJump(actor)||(actor.getY()<player2.getY() && player2.getY()-actor.getY()<=1.07d)) {
                         actor.jump();
                     }
                     vec = vec.normalize().multiply(speed);
                     actor.setVelocity(vec);
                 }
                 lookAt(actor, player2);
+                // Check for blocks below the actor
+                World world = actor.getEntityWorld();
+                BlockPos posBelowActor = actor.getBlockPos().down();
+                Block blockBelowActor = world.getBlockState(posBelowActor).getBlock();
+                if (!(actor.getY() > player2.getY())) {
+                    if (blockBelowActor == Blocks.AIR || blockBelowActor == Blocks.WATER || blockBelowActor == Blocks.LAVA) { // If there's no block below the actor or it's a water/lava block
+                        // Check for blocks beside the empty block
+                        Direction[] directionsToCheck = {Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST};
+                        for (Direction dir : directionsToCheck) { // Check for blocks in all four directions
+                            BlockPos posBesideEmptyBlock = posBelowActor.offset(dir);
+                            Block blockBesideEmptyBlock = world.getBlockState(posBesideEmptyBlock).getBlock();
+                            if (blockBesideEmptyBlock != Blocks.AIR && blockBesideEmptyBlock != Blocks.WATER && blockBesideEmptyBlock != Blocks.LAVA) { // If there's a solid block beside the empty block
+                                // Move towards the solid block
+                                Vec3d vecBesideEmptyBlock = new Vec3d(dir.getOffsetX(), 0, dir.getOffsetZ());
+                                vecBesideEmptyBlock.normalize().multiply(speed);
+                                actor.setVelocity(vecBesideEmptyBlock);
+                                break; // Stop checking other directions
+                            }
+                            else {
+                                Vec3d NoSoldBlock = new Vec3d(0, 0, 0);
+                                actor.setVelocity(NoSoldBlock);
+                            }
+                        }
+                    }
+                }
             }
         });
         movementThread.start();
@@ -123,6 +154,7 @@ public class Path {
             movementThread = null;
         }
     }
+
     public static boolean shouldJump(ActorEntity actor) {
         World world = actor.getEntityWorld();
         BlockPos pos = actor.getBlockPos();
@@ -154,9 +186,9 @@ public class Path {
                 return Direction.WEST;
             }
         } else {
-            if (dz > 0) {
+            if(dz > 0){
                 return Direction.SOUTH;
-            } else {
+            }else{
                 return Direction.NORTH;
             }
         }
@@ -169,16 +201,3 @@ public class Path {
         CRAWL
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
