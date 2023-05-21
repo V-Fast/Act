@@ -2,6 +2,7 @@ package com.lumaa.act.item.stick;
 
 import com.lumaa.act.ai.ActorAction;
 import com.lumaa.act.entity.ActorEntity;
+import com.lumaa.act.pathfinding.Path;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
@@ -15,7 +16,7 @@ public class FollowStick extends Item {
     public FollowStick(Settings settings) {
         super(settings.maxCount(1));
     }
-    private static PlayerEntity player;
+    private boolean isfollowing=false;
 
     //TODO: Make it actually Follow (fix r-click twice to follow)
     @Override
@@ -23,22 +24,18 @@ public class FollowStick extends Item {
         if (entity instanceof ActorEntity) {
             ActorEntity actor = (ActorEntity) entity;
             boolean follows = actor.getAi().action.getAction().equals(ActorAction.Actions.FOLLOW);
-            player=user;
+            isfollowing=!isfollowing;
             user.playSound(SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.PLAYERS, 1f, follows ? 0.8f : 1f);
 
-            if (follows) {
-                actor.getAi().action.setAction(ActorAction.Actions.NONE);
-                //actor.getAi().movement.pathfinder.path.stopPath();
+            if (isfollowing) {
+                Path.nextMove(user,actor,user.getBlockPos());
             } else {
-                actor.getAi().followEntity(user);
+                actor.getAi().action.setAction(ActorAction.Actions.NONE);
+                Path.stopMoving();
             }
             return ActionResult.SUCCESS;
         }
         return ActionResult.FAIL;
-    }
-    public static PlayerEntity getPlayer()
-    {
-        return player;
     }
 
     @Override

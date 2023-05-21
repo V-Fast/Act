@@ -4,7 +4,9 @@ import com.lumaa.act.entity.ActorEntity;
 import net.minecraft.command.argument.EntityAnchorArgumentType;
 import net.minecraft.entity.EntityPose;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket;
 import net.minecraft.util.ActionResult;
+import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -59,19 +61,31 @@ public class ActorAction {
         this.setAction(Actions.FOLLOW);
     }
 
-    // To test
     public ActionResult placeBlock(BlockPos position) {
         ActorEntity actorEntity = this.actorAI.actor;
         actorEntity.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, position.toCenterPos());
         BlockHitResult raycast = new BlockHitResult(position.toCenterPos(), Direction.DOWN, position, false);
-        return actorEntity.interactionManager.interactBlock(actorEntity, actorEntity.getWorld(), actorEntity.getInventory().getMainHandStack(), actorEntity.preferredHand, raycast);
+        actorEntity.swingHand(Hand.MAIN_HAND);
+        return actorEntity.interactionManager.interactBlock(actorEntity, actorEntity.getWorld(), actorEntity.getInventory().getMainHandStack(), Hand.MAIN_HAND, raycast);
     }
 
-    // To test
-    public void breakBlock(BlockPos position) {
+    /**
+     * Breaks <b>ALL</b> blocks instantly
+     * @param position The position of the block to break
+     */
+    public void instantBreakBlock(BlockPos position) {
         ActorEntity actorEntity = this.actorAI.actor;
         actorEntity.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, position.toCenterPos());
+        actorEntity.swingHand(Hand.MAIN_HAND);
         actorEntity.interactionManager.tryBreakBlock(position);
+    }
+
+    public void progressBreakBlock(BlockPos position) {
+        ActorEntity actorEntity = this.actorAI.actor;
+        actorEntity.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, position.toCenterPos());
+        actorEntity.swingHand(Hand.MAIN_HAND);
+        actorEntity.interactionManager.processBlockBreakingAction(position, PlayerActionC2SPacket.Action.START_DESTROY_BLOCK, Direction.DOWN, actorEntity.getWorld().getHeight(), 15);
+        //TODO: Break block once processBlockBreakingAction is finished
     }
 
     public void setAction(Actions actorAction) {

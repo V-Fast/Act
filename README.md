@@ -16,7 +16,7 @@
 Create Actors (also called "NPCs") using the `/actor [Player Name]` command. This will maybe change in the future.\
 Actors can follow you if you right-click using the **Follow Stick**. You can make them stop at any time by using the **Follow Stick** again!
 
-**WARNING**: This new version ([1.2.0](https://modrinth.com/mod/acts/version/1.2.0)) includes a new artificial intelligence, it might break or crash sometimes! If it does occur, please [fill an issue](https://github.com/lumaa-dev/Act/issues/new) unless it's already [listed](#known-bugs)
+**WARNING**: Since version [1.2.0](https://modrinth.com/mod/acts/version/1.2.0), [Act](https://modrinth.com/mod/acts) includes a new artificial intelligence, it might break or crash sometimes! If it does occur, please [fill an issue](https://github.com/lumaa-dev/Act/issues/new) unless it's already [listed](#known-bugs)
 
 ## How can Act be used?
 Act can be used to feel less lonely (this depends on people), take screenshots with persons you could never take screenshots with! Or just have fancy statues.
@@ -42,8 +42,7 @@ Once the loading is done:
 - Install the latest version of [Fabric API](https://modrinth.com/mod/fabric-api)
 
 ## Known Bugs
-- Actor entity does not have knockback when damaged by entity or player
 - TPS drops to 0 when loading Actor
-- Actor AI sometimes makes the entity turn on itself (then continues)
+- Actor AI sometimes makes the entity turn on itself (then continues) (*to re-confirm*)
 - Actor AI has a hard time with obstacles
 
