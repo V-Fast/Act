@@ -11,7 +11,6 @@ import java.util.List;
 /**
  * Old Pathfinding system
  */
-@Deprecated
 public class Path {
     private Pathfinder pathfinder;
     private BlockPos origin;
