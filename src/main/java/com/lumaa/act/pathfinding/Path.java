@@ -119,7 +119,9 @@ public class Path {
         movementThread = new Thread(() -> {
             while (keepMoving) {
                 double distance = Math.sqrt(actor.squaredDistanceTo(player2));
-                if (distance > 1) {
+                if (distance > 2) {
+                    Vec3d ActorPos = actor.getPos();
+                    Vec3d player2Pos = player2.getPos();
                     Direction direction = getDirection(actor, player2);
                     Vec3d vec = new Vec3d(direction.getOffsetX(), 0, direction.getOffsetZ());
                     double dy = player2.getY() - actor.getY();
@@ -128,36 +130,29 @@ public class Path {
                     } else {
                         vec = new Vec3d(vec.x, -100, vec.z);
                     }
-                    if (shouldJump(actor)) {
+                    /*if (shouldJump(actor)) {
                         System.out.println("Jumping"); // Print a message when the actor jumps
                         actor.jump();
                         Vec3d velocity = actor.getVelocity();
                         actor.setVelocity(velocity.x, velocity.y * 0.5, velocity.z); // Reduce the vertical velocity to make the jump lower
-                    }
+                    }*/
 
                     vec = vec.normalize().multiply(speed);
-
-                    // Check for holes or obstacles in the actor's path
+                    Vec3d direction2 = player2Pos.subtract(ActorPos).normalize();
                     World world = actor.getEntityWorld();
-                    BlockPos posInFrontOfActor = actor.getBlockPos().offset(direction);
-                    Block blockInFrontOfActor = world.getBlockState(posInFrontOfActor).getBlock();
-                    if (blockInFrontOfActor == Blocks.AIR || blockInFrontOfActor == Blocks.CAVE_AIR || blockInFrontOfActor == Blocks.VOID_AIR) { // If there's a hole in front of the actor
-                        System.out.println("Hole in front of actor"); // Print a message when there's a hole in front of the actor
-                        // Check for blocks beside the hole
-                        Direction[] directionsToCheck = {Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST};
-                        for (Direction dir : directionsToCheck) { // Check for blocks in all four directions
-                            BlockPos posBesideHole = posInFrontOfActor.offset(dir);
-                            Block blockBesideHole = world.getBlockState(posBesideHole).getBlock();
-                            if (hasCollision(blockBesideHole)) { // If there's a solid block beside the hole
-                                System.out.println("Solid block beside hole: " + dir); // Print a message when there's a solid block beside the hole
-                                // Move towards the solid block
-                                vec = new Vec3d(dir.getOffsetX(), 0, dir.getOffsetZ());
-                                break; // Stop checking other directions
-                            }
-                        }
+                    BlockPos blockPos = new BlockPos(BlockPos.ofFloored(ActorPos.add(direction2.multiply(speed))));
+                    BlockState blockState = world.getBlockState(blockPos);
+                    if (blockState.isAir()) {
+                        // if there is no solid ground, move the player down
+                        if (blockState.isOf(Blocks.WATER) ||blockState.isOf(Blocks.LAVA)) direction2 = direction2.subtract(0, 1, 0); //Gravity to affect less in water and lava so that it doesnt look like its struggling to float
+                        else direction2 = direction2.subtract(0, 10, 0); //Gravity to be extreme so that it does not start floating
+                    } else if (blockState.isFullCube(world, blockPos)) {
+                        // if there is a solid block in the way, make the player jump
+                        actor.jump();
                     }
-
-                    actor.setVelocity(vec);
+                    actor.setVelocity(direction2.multiply(speed));
+                    actor.setSprinting(speed > 0.05);
+                    //actor.setVelocity(vec);
                 }
                 lookAt(actor, player2);
                 swimUp(actor);
@@ -168,10 +163,6 @@ public class Path {
                 } else {
                     actor.setSwimming(false);
                 }
-
-                // Print the actor's position and velocity
-                System.out.println("Actor position: " + actor.getPos());
-                System.out.println("Actor velocity: " + actor.getVelocity());
             }
         });
         movementThread.start();
