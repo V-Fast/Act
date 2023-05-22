@@ -1,19 +1,17 @@
 package com.lumaa.act.pathfinding;
 
 import com.lumaa.act.entity.ActorEntity;
+import com.lumaa.act.item.stick.SpeedManagerStick;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.EntityPose;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.text.Text;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.RaycastContext;
 import net.minecraft.world.World;
 
 public class Path {
@@ -23,6 +21,10 @@ public class Path {
     private static Thread movementThread = null;
     private static int stuckCount=0,notMovingCount=0;
     private static double prevDistance = 0;
+    private static final double runSpeed = 0.15;
+    private static final double walkSpeed = 0.1;
+    private static final double sneakSpeed = 0.035;
+    private EMovementState movementState;
 
 
     public Path(ActorEntity actor) {
@@ -30,11 +32,24 @@ public class Path {
     }
 
 
+
+    public static double getMovementSpeed(EMovementState movementState) {
+        if (movementState == EMovementState.WALK) {
+            return walkSpeed;
+        } else if (movementState == EMovementState.RUN) {
+            return runSpeed;
+        } else if (movementState == EMovementState.SNEAK) {
+            return sneakSpeed;
+        } else {
+            return 0.0d;
+        }
+    }
+
+
     public static void nextMove(PlayerEntity player, ActorEntity actor, BlockPos playerPos) {
         playerFollow = player;
         keepMoving = true;
-        moveTowardsPlayer(actor, player, player.getMovementSpeed()+0.1f, 3d);
-        if(actor.getDimensions(EntityPose.STANDING)!=player.getDimensions(EntityPose.STANDING))stopMoving();
+        moveTowardsPlayer(actor, player, 3d);
         if(actor.isDead() || actor.notInAnyWorld) stopMoving();
     }
 
@@ -42,9 +57,9 @@ public class Path {
         Vec3d vec;
         if (actor.isSubmergedInWater()) { // Check if the actor is in water
             if (actor.isTouchingWater() && player.isSubmergedInWater())
-                vec = new Vec3d(0, -0.0008, 0);
+                vec = new Vec3d(0, -0.01, 0);
             else if(player.isTouchingWater())
-                vec = new Vec3d(0, 1, 0); // Create a vector pointing upwards
+                vec = new Vec3d(0, 0.7, 0); // Create a vector pointing upwards
             else
                 vec=new Vec3d(0,0.6,0);
             actor.setSwimming(true);
@@ -54,32 +69,35 @@ public class Path {
         }
         if (actor.isInLava())
         {
-            vec = new Vec3d(0, 0.2, 0); // Create a vector pointing upwards
+            vec = new Vec3d(0, 0.3, 0); // Create a vector pointing upwards
             actor.setVelocity(vec); // Set the actor's velocity to the upwards vector
         }
     }
 
-    public static void moveTowardsPlayer(ActorEntity actor, PlayerEntity player, double speed, double downSpeed) {
+    public static void moveTowardsPlayer(ActorEntity actor, PlayerEntity player, double downSpeed) {
         movementThread = new Thread(() -> {
             //This code looks trash but works good
-
             actor.isStuck=false;
+            EntityPose previousPose=actor.getPose();
             while (keepMoving) {
+                double speed=getMovementSpeed(SpeedManagerStick.getState());
+                if(SpeedManagerStick.getState()==EMovementState.SNEAK) {
+                    actor.setSneaking(true);
+                    previousPose=actor.getPose();
+                    actor.setPose(EntityPose.CROUCHING);
+                }
+                else {
+                    actor.setPose(previousPose);
+                    actor.setSneaking(false);
+                }
+
+                //Set Sneaking to true if actor is supposed to sneak move
                 double distance = Math.sqrt(actor.squaredDistanceTo(player));
                 if (distance > 3) {
-
                     actor.isFollowing=true;
 
                     Vec3d ActorPos = actor.getPos();
                     Vec3d playerPos = player.getPos();
-                    Direction direction = getDirection(actor, player);
-                    Vec3d vec = new Vec3d(direction.getOffsetX(), 0, direction.getOffsetZ());
-                    double dy = player.getY() - actor.getY();
-
-                    if (dy < 0) vec = vec.subtract(0, downSpeed, 0);
-                    else vec = new Vec3d(vec.x, -100, vec.z); // For some reason if Y =0 then the actor wont move
-
-                    vec = vec.normalize().multiply(speed);
 
                     Vec3d direction2 = playerPos.subtract(ActorPos).normalize();
 
@@ -115,10 +133,8 @@ public class Path {
                         // The actor is not stuck, reset the isStuck flag
                         actor.isStuck = false;
                     }
-
+                    actor.setSprinting(speed>0.03);
                     actor.setVelocity(direction2.multiply(speed));
-
-                    actor.setSprinting(speed > 0.05);
 
                     if (actor.isTouchingWater())
                         actor.setSwimming(true);
@@ -158,12 +174,12 @@ public class Path {
         // Get the velocity of the actor
         Vec3d velocity = actor.getVelocity();
         // Check if the velocity is near zero
-        if (velocity.lengthSquared() >= 0.02) {
+        if (velocity.lengthSquared() >= 0) {
             // The velocity is not near zero, reset the notMovingCount variable
             notMovingCount = 0;
         } else {
             // The velocity is near zero, increment the notMovingCount variable
-            notMovingCount++;
+            if(!actor.isTouchingWater() || !actor.isSubmergedInWater() ||!actor.isInLava() )notMovingCount++;
             // If the actor has not been moving for more than 20 ticks, it is stuck
             return notMovingCount > 20;
         }
@@ -211,5 +227,9 @@ public class Path {
             }
         }
     }
-
+    public enum EMovementState {
+        WALK,
+        SNEAK,
+        RUN,
+    }
 }

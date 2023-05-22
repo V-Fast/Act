@@ -1,6 +1,7 @@
 package com.lumaa.act;
 
 import com.lumaa.act.entity.ActorEntity;
+import com.lumaa.act.pathfinding.Path;
 import com.mojang.authlib.GameProfile;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -104,6 +105,7 @@ public class ActorData implements ModInitializer {
             actorList = new NbtList();
         }
         for (ActorEntity actor : actors) {
+            if (actor.isFollowing) Path.stopMoving();
             NbtCompound actorNbt = new NbtCompound();
             actorNbt.putDouble("X", actor.getX());
             actorNbt.putDouble("Y", actor.getY());
