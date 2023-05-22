@@ -4,6 +4,7 @@ import com.lumaa.act.entity.ActorEntity;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.entity.EntityPose;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.hit.BlockHitResult;
@@ -33,16 +34,19 @@ public class Path {
         playerFollow = player;
         keepMoving = true;
         moveTowardsPlayer(actor, player, player.getMovementSpeed()+0.1f, 3d);
+        if(actor.getDimensions(EntityPose.STANDING)!=player.getDimensions(EntityPose.STANDING))stopMoving();
         if(actor.isDead() || actor.notInAnyWorld) stopMoving();
     }
 
     public static void swimUp(ActorEntity actor,PlayerEntity player) {
         Vec3d vec;
         if (actor.isSubmergedInWater()) { // Check if the actor is in water
-            if (actor.isTouchingWater()&& player.isSubmergedInWater())
+            if (actor.isTouchingWater() && player.isSubmergedInWater())
                 vec = new Vec3d(0, -0.0008, 0);
+            else if(player.isTouchingWater())
+                vec = new Vec3d(0, 1, 0); // Create a vector pointing upwards
             else
-                vec = new Vec3d(0, 1.5, 0); // Create a vector pointing upwards
+                vec=new Vec3d(0,0.6,0);
             actor.setSwimming(true);
             actor.setVelocity(vec); // Set the actor's velocity to the upwards vector
         } else {
@@ -134,7 +138,6 @@ public class Path {
     /*
     To check if the actor is stuck and then display the message if it is. Currently, awful
      */
-
     public static boolean isStuck(ActorEntity actor, PlayerEntity player) {
         // Get the distance between the actor and the player
         double distance = actor.distanceTo(player);
@@ -152,7 +155,6 @@ public class Path {
         }
         // Update prevDistance for the next tick
         prevDistance = distance;
-
         // Get the velocity of the actor
         Vec3d velocity = actor.getVelocity();
         // Check if the velocity is near zero
@@ -165,7 +167,6 @@ public class Path {
             // If the actor has not been moving for more than 20 ticks, it is stuck
             return notMovingCount > 20;
         }
-
         // The actor is not stuck
         return false;
     }
