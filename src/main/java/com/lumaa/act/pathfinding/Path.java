@@ -20,6 +20,8 @@ public class Path {
     private static volatile boolean keepMoving = true;
     private static PlayerEntity playerFollow;
     private static Thread movementThread = null;
+    private static int stuckCount=0,notMovingCount=0;
+    private static double prevDistance = 0;
 
 
     public Path(ActorEntity actor) {
@@ -40,7 +42,7 @@ public class Path {
             if (actor.isTouchingWater())
                 vec = new Vec3d(0, -0.0008, 0);
             else
-                vec = new Vec3d(0, 1.3, 0); // Create a vector pointing upwards
+                vec = new Vec3d(0, 1.6, 0); // Create a vector pointing upwards
             actor.setSwimming(true);
         } else {
             actor.setSwimming(false);
@@ -55,35 +57,44 @@ public class Path {
     public static void moveTowardsPlayer(ActorEntity actor, PlayerEntity player, double speed, double downSpeed) {
         movementThread = new Thread(() -> {
             //This code looks trash but works good
+
             actor.isStuck=false;
             while (keepMoving) {
                 double distance = Math.sqrt(actor.squaredDistanceTo(player));
                 if (distance > 3) {
+
                     actor.isFollowing=true;
+
                     Vec3d ActorPos = actor.getPos();
                     Vec3d playerPos = player.getPos();
                     Direction direction = getDirection(actor, player);
                     Vec3d vec = new Vec3d(direction.getOffsetX(), 0, direction.getOffsetZ());
                     double dy = player.getY() - actor.getY();
+
                     if (dy < 0) vec = vec.subtract(0, downSpeed, 0);
                     else vec = new Vec3d(vec.x, -100, vec.z); // For some reason if Y =0 then the actor wont move
+
                     vec = vec.normalize().multiply(speed);
+
                     Vec3d direction2 = playerPos.subtract(ActorPos).normalize();
+
                     World world = actor.getEntityWorld();
                     BlockPos blockPos = new BlockPos(BlockPos.ofFloored(ActorPos.add(direction2.multiply(speed))));
                     BlockState blockState = world.getBlockState(blockPos);
+
                     if (blockState.isAir()) {
                         // if there is no solid ground, move the player down
-                        if (blockState.isOf(Blocks.WATER)) direction2 = direction2.subtract(0, 2, 0);//Gravity to affect less in water so that it doesnt look like its struggling to float
-                        else if(blockState.isOf(Blocks.LAVA))direction2 = direction2.subtract(0, 3, 0);
-                        else direction2 = direction2.subtract(0, 5, 0); //Gravity to be extreme so that it does not start floating
+                        if (blockState.isOf(Blocks.WATER))
+                            direction2 = direction2.subtract(0, 2, 0);//Gravity to affect less in water and lava so that it doesnt look like its struggling to float
+                        else if(blockState.isOf(Blocks.LAVA))
+                            direction2 = direction2.subtract(0, 3, 0);
+                        else
+                            direction2 = direction2.subtract(0, 5, 0); //Gravity to be extreme so that it does not start floating
                     } else if (blockState.isFullCube(world, blockPos)) {
                         // if there is a solid block in the way, make the player jump
                         actor.jump();
                     }
-                    actor.setVelocity(direction2.multiply(speed));
-                    actor.setSprinting(speed > 0.05);
-                    if (isStuck(actor, player)|| isStuckInHole(actor)) {
+                    if (isStuck(actor, player)) {
                         // The actor is stuck
                         if (!actor.isStuck) {
                             // The message has not been displayed yet, display it now
@@ -92,71 +103,70 @@ public class Path {
                             String formattedActorPos = String.format("(%f, %f, %f)", actorPos.x, actorPos.y, actorPos.z);
                             String message = String.format("%s is stuck at %s", actor.getName().getString(), formattedActorPos);
                             player.sendMessage(Text.of(message), false);
-                            // Set the stuckMessageDisplayed flag to true so that the message is not displayed again
+                            // Set the isStuck flag to true so that the message is not displayed again
                             actor.isStuck = true;
                         }
                     } else {
-                        // The actor is not stuck, reset the stuckMessageDisplayed flag
+                        // The actor is not stuck, reset the isStuck flag
                         actor.isStuck = false;
                     }
+
+                    actor.setVelocity(direction2.multiply(speed));
+
+                    actor.setSprinting(speed > 0.05);
+
+                    if (actor.isTouchingWater())
+                        actor.setSwimming(true);
+                    else
+                        actor.setSwimming(false);
+
                 }
                 actor.setSprinting(false);
                 actor.isFollowing=false;
                 lookAt(actor, player);
                 swimUp(actor);
-                // Check if the actor is in water and set its swimming animation
-                if (actor.isTouchingWater()) actor.setSwimming(true);
-                else actor.setSwimming(false);
             }
         });
         movementThread.start();
     }
 
     /*
-    To check if the actor is stuck and then display the message if it is. Currently really bad
+    To check if the actor is stuck and then display the message if it is. Currently, awful
      */
 
     public static boolean isStuck(ActorEntity actor, PlayerEntity player) {
-        // Get the actor's current position
-        Vec3d actorPos = actor.getPos();
-        // Get the player's current position
-        Vec3d playerPos = player.getPos();
-        // Cast a ray from the actor's position towards the player's position
-        BlockHitResult hitResult = actor.world.raycast(new RaycastContext(actorPos, playerPos, RaycastContext.ShapeType.COLLIDER, RaycastContext.FluidHandling.NONE, actor));
-        // Check if the ray hit a block
-        if (hitResult.getType() == HitResult.Type.BLOCK) {
-            // The ray hit a block, check if the block is passable
-            BlockPos blockPos = hitResult.getBlockPos();
-            BlockState blockState = actor.world.getBlockState(blockPos);
-            if (!blockState.getBlock().canMobSpawnInside()) {
-                // The block is not passable, check if the actor can jump over it
-                double jumpHeight = 1.05; // Set this to the maximum height that the actor can jump
-                // The block is too high for the actor to jump over, the actor is stuck
-                return blockPos.getY() - actorPos.y > jumpHeight;
+        // Get the distance between the actor and the player
+        double distance = actor.distanceTo(player);
+        // Check if the distance is increasing
+        if (distance > prevDistance && prevDistance-distance>=20) {
+            // The distance is increasing, increment the stuckCount variable
+            stuckCount++;
+            if (stuckCount > 20) {
+                // If the actor has been moving away from the player for more than 20 ticks, it is stuck
+                return true;
             }
+        } else {
+            // The distance is not increasing, reset the stuckCount variable
+            stuckCount = 0;
         }
-        // The ray did not hit any blocks or hit a passable block or a block that the actor can jump over, the actor is not stuck
+        // Update prevDistance for the next tick
+        prevDistance = distance;
+
+        // Get the velocity of the actor
+        Vec3d velocity = actor.getVelocity();
+        // Check if the velocity is near zero
+        if (velocity.lengthSquared() >= 0.02) {
+            // The velocity is not near zero, reset the notMovingCount variable
+            notMovingCount = 0;
+        } else {
+            // The velocity is near zero, increment the notMovingCount variable
+            notMovingCount++;
+            // If the actor has not been moving for more than 20 ticks, it is stuck
+            return notMovingCount > 20;
+        }
+
+        // The actor is not stuck
         return false;
-    }
-    public static boolean isStuckInHole(ActorEntity actor) {
-        // Get the actor's current position
-        BlockPos currentPos = actor.getBlockPos();
-        // Check if the actor can move in any direction
-        for (Direction direction : Direction.values()) {
-            // Get the block in the given direction
-            Block block = actor.world.getBlockState(currentPos.offset(direction)).getBlock();
-            // Check if the block is passable
-            if (block.canMobSpawnInside()) {
-                // If the block is passable, check if there is a solid block above it
-                Block aboveBlock = actor.world.getBlockState(currentPos.offset(direction).up()).getBlock();
-                if (aboveBlock.canMobSpawnInside()) {
-                    // If there is no solid block above it, return false (the actor can get out of the hole)
-                    return false;
-                }
-            }
-        }
-        // If none of the blocks around the actor are passable or have a solid block above them, return true (the actor is stuck in a hole)
-        return true;
     }
 
 
