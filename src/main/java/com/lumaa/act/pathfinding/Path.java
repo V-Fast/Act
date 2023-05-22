@@ -2,12 +2,12 @@ package com.lumaa.act.pathfinding;
 
 import com.lumaa.act.entity.ActorEntity;
 import com.lumaa.act.item.stick.SpeedManagerStick;
-import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.EntityPose;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
@@ -15,23 +15,15 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
 public class Path {
-    private static ActorEntity actor;
     private static volatile boolean keepMoving = true;
-    private static PlayerEntity playerFollow;
     private static Thread movementThread = null;
-    private static int stuckCount=0,notMovingCount=0;
+    private static int stuckCount = 0, notMovingCount = 0;
     private static double prevDistance = 0;
+
+    // Actor Movement Speed
     private static final double runSpeed = 0.15;
     private static final double walkSpeed = 0.1;
     private static final double sneakSpeed = 0.035;
-    private EMovementState movementState;
-
-
-    public Path(ActorEntity actor) {
-        Path.actor = actor;
-    }
-
-
 
     public static double getMovementSpeed(EMovementState movementState) {
         if (movementState == EMovementState.WALK) {
@@ -47,7 +39,6 @@ public class Path {
 
 
     public static void nextMove(PlayerEntity player, ActorEntity actor, BlockPos playerPos) {
-        playerFollow = player;
         keepMoving = true;
         moveTowardsPlayer(actor, player, 3d);
         if(actor.isDead() || actor.notInAnyWorld) stopMoving();
@@ -61,7 +52,7 @@ public class Path {
             else if(player.isTouchingWater())
                 vec = new Vec3d(0, 0.7, 0); // Create a vector pointing upwards
             else
-                vec=new Vec3d(0,0.6,0);
+                vec = new Vec3d(0,0.6,0);
             actor.setSwimming(true);
             actor.setVelocity(vec); // Set the actor's velocity to the upwards vector
         } else {
@@ -76,25 +67,24 @@ public class Path {
 
     public static void moveTowardsPlayer(ActorEntity actor, PlayerEntity player, double downSpeed) {
         movementThread = new Thread(() -> {
-            //This code looks trash but works good
-            actor.isStuck=false;
-            EntityPose previousPose=actor.getPose();
+            // This code looks trash but works good
+            actor.isStuck = false;
+            EntityPose previousPose = actor.getPose();
             while (keepMoving) {
-                double speed=getMovementSpeed(SpeedManagerStick.getState());
-                if(SpeedManagerStick.getState()==EMovementState.SNEAK) {
+                double speed = getMovementSpeed(SpeedManagerStick.getState());
+                if(SpeedManagerStick.getState() == EMovementState.SNEAK) {
                     actor.setSneaking(true);
-                    previousPose=actor.getPose();
+                    previousPose = actor.getPose();
                     actor.setPose(EntityPose.CROUCHING);
-                }
-                else {
+                } else {
                     actor.setPose(previousPose);
                     actor.setSneaking(false);
                 }
 
-                //Set Sneaking to true if actor is supposed to sneak move
+                // Set Sneaking to true if actor is supposed to sneak move
                 double distance = Math.sqrt(actor.squaredDistanceTo(player));
                 if (distance > 3) {
-                    actor.isFollowing=true;
+                    actor.isFollowing = true;
 
                     Vec3d ActorPos = actor.getPos();
                     Vec3d playerPos = player.getPos();
@@ -107,12 +97,9 @@ public class Path {
 
                     if (blockState.isAir()) {
                         // if there is no solid ground, move the player down
-                        if (blockState.isOf(Blocks.WATER))
-                            direction2 = direction2.subtract(0, 2, 0);//Gravity to affect less in water and lava so that it doesnt look like its struggling to float
-                        else if(blockState.isOf(Blocks.LAVA))
-                            direction2 = direction2.subtract(0, 3, 0);
-                        else
-                            direction2 = direction2.subtract(0, 5, 0); //Gravity to be extreme so that it does not start floating
+                        if (blockState.isOf(Blocks.WATER)) direction2 = direction2.subtract(0, 2, 0);//Gravity to affect less in water and lava so that it doesnt look like its struggling to float
+                        else if (blockState.isOf(Blocks.LAVA)) direction2 = direction2.subtract(0, 3, 0);
+                        else direction2 = direction2.subtract(0, 5, 0); //Gravity to be extreme so that it does not start floating
                     } else if (blockState.isFullCube(world, blockPos)) {
                         // if there is a solid block in the way, make the player jump
                         actor.jump();
@@ -125,7 +112,7 @@ public class Path {
                             Vec3d actorPos = actor.getPos();
                             String formattedActorPos = String.format("(%f, %f, %f)", actorPos.x, actorPos.y, actorPos.z);
                             String message = String.format("%s is stuck at %s", actor.getName().getString(), formattedActorPos);
-                            player.sendMessage(Text.of(message), false);
+                            player.sendMessage(Text.of(message).copy().formatted(Formatting.WHITE), false);
                             // Set the isStuck flag to true so that the message is not displayed again
                             actor.isStuck = true;
                         }
@@ -133,17 +120,14 @@ public class Path {
                         // The actor is not stuck, reset the isStuck flag
                         actor.isStuck = false;
                     }
-                    actor.setSprinting(speed>0.03);
+                    actor.setSprinting(speed > 0.03);
                     actor.setVelocity(direction2.multiply(speed));
 
-                    if (actor.isTouchingWater())
-                        actor.setSwimming(true);
-                    else
-                        actor.setSwimming(false);
-
+                    if (actor.isTouchingWater()) actor.setSwimming(true);
+                    else actor.setSwimming(false);
                 }
                 actor.setSprinting(false);
-                actor.isFollowing=false;
+                actor.isFollowing = false;
                 lookAt(actor, player);
                 swimUp(actor,player);
             }
@@ -158,7 +142,7 @@ public class Path {
         // Get the distance between the actor and the player
         double distance = actor.distanceTo(player);
         // Check if the distance is increasing
-        if (distance > prevDistance && prevDistance-distance>=20) {
+        if (distance > prevDistance && prevDistance - distance >= 20) {
             // The distance is increasing, increment the stuckCount variable
             stuckCount++;
             if (stuckCount > 20) {
@@ -179,7 +163,7 @@ public class Path {
             notMovingCount = 0;
         } else {
             // The velocity is near zero, increment the notMovingCount variable
-            if(!actor.isTouchingWater() || !actor.isSubmergedInWater() ||!actor.isInLava() )notMovingCount++;
+            if(!actor.isTouchingWater() || !actor.isSubmergedInWater() ||!actor.isInLava()) notMovingCount++;
             // If the actor has not been moving for more than 20 ticks, it is stuck
             return notMovingCount > 20;
         }
