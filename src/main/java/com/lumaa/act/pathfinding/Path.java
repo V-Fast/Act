@@ -36,22 +36,23 @@ public class Path {
         if(actor.isDead() || actor.notInAnyWorld) stopMoving();
     }
 
-    public static void swimUp(ActorEntity actor) {
-        Vec3d vec = new Vec3d(actor.getVelocity().x, actor.getVelocity().y, actor.getVelocity().z);
+    public static void swimUp(ActorEntity actor,PlayerEntity player) {
+        Vec3d vec;
         if (actor.isSubmergedInWater()) { // Check if the actor is in water
-            if (actor.isTouchingWater())
+            if (actor.isTouchingWater()&& player.isSubmergedInWater())
                 vec = new Vec3d(0, -0.0008, 0);
             else
-                vec = new Vec3d(0, 1.6, 0); // Create a vector pointing upwards
+                vec = new Vec3d(0, 1.5, 0); // Create a vector pointing upwards
             actor.setSwimming(true);
+            actor.setVelocity(vec); // Set the actor's velocity to the upwards vector
         } else {
             actor.setSwimming(false);
         }
         if (actor.isInLava())
         {
             vec = new Vec3d(0, 0.2, 0); // Create a vector pointing upwards
+            actor.setVelocity(vec); // Set the actor's velocity to the upwards vector
         }
-        actor.setVelocity(vec); // Set the actor's velocity to the upwards vector
     }
 
     public static void moveTowardsPlayer(ActorEntity actor, PlayerEntity player, double speed, double downSpeed) {
@@ -124,7 +125,7 @@ public class Path {
                 actor.setSprinting(false);
                 actor.isFollowing=false;
                 lookAt(actor, player);
-                swimUp(actor);
+                swimUp(actor,player);
             }
         });
         movementThread.start();
