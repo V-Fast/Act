@@ -26,8 +26,8 @@ import org.jetbrains.annotations.Nullable;
 public class ActorEntity extends ServerPlayerEntity {
     public GameProfile gameProfile;
     private ActorAI ai;
-    public boolean isFollowing=false;
-    public boolean isStuck=false;
+    public boolean isFollowing = false;
+    public boolean isStuck = false;
 
     public ActorEntity(MinecraftServer server, ServerWorld world, GameProfile profile) {
         super(server, world, profile);
@@ -124,9 +124,6 @@ public class ActorEntity extends ServerPlayerEntity {
     public ActorAI getAi() {
         return ai;
     }
-
-
-
 
     public void writeToSpawnPacket() {
         PacketByteBuf buf = PacketByteBufs.create();
