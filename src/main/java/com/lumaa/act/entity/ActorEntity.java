@@ -27,6 +27,7 @@ public class ActorEntity extends ServerPlayerEntity {
     public GameProfile gameProfile;
     private ActorAI ai;
     public boolean isFollowing=false;
+    public boolean isStuck=false;
 
     public ActorEntity(MinecraftServer server, ServerWorld world, GameProfile profile) {
         super(server, world, profile);

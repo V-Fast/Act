@@ -115,6 +115,7 @@ public class ActorData implements ModInitializer {
             actorNbt.putString("Dimension",actor.world.getRegistryKey().getValue().toString());
             actorNbt.putString("Name", actor.gameProfile.getName());
             actorNbt.putUuid("UUID", actor.getUuid());
+            actorNbt.putBoolean("OnFire",actor.isOnFire());
 
             // Save the inventory
             NbtList inventoryList = new NbtList();
@@ -158,6 +159,7 @@ public class ActorData implements ModInitializer {
                 String ActorDimension = actorNtb.getString("Dimension");
                 String name = actorNtb.getString("Name");
                 UUID uuid = actorNtb.getUuid("UUID");
+                boolean onfire=actorNtb.getBoolean("OnFire");
 
                 GameProfile profile = new GameProfile(uuid, name);
                 ServerWorld world = switch (ActorDimension) {
@@ -168,6 +170,7 @@ public class ActorData implements ModInitializer {
                 ActorEntity actor = new ActorEntity(server, world, profile);
                 actor.refreshPositionAndAngles(x, y, z, yaw, pitch);
                 actor.setHealth(health);
+                actor.setOnFire(onfire);
 
                 System.out.println("ActorDimension: " + ActorDimension);
                 System.out.println("Actor.world.getRegistryKey().getValue().toString(): " +  actor.world.getRegistryKey().getValue().toString());
