@@ -26,7 +26,7 @@ public class FollowStick extends Item {
             user.playSound(SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.PLAYERS, 1f, follows ? 0.8f : 1f);
 
             if (actor.isFollowing) {
-                Movement.nextMove(user, actor);
+                Movement.moveToPlayer(user, actor);
             } else {
                 actor.getAi().action.setAction(ActorAction.Actions.NONE);
                 Movement.stopMoving(actor);

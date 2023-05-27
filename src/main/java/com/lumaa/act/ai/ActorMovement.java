@@ -115,6 +115,10 @@ public class ActorMovement implements IMovement {
             }
         }
     }
+    public void setGoal(BlockPos pos) {
+        this.goal = new Vec3d(pos.getX(), pos.getY(), pos.getZ());
+    }
+
 
     /**
      * Executes the pathfinding and movement of an actor

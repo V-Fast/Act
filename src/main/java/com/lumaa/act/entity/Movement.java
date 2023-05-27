@@ -17,8 +17,10 @@ import net.minecraft.world.World;
 import java.util.Objects;
 
 public class Movement {
-    private static volatile boolean keepMoving = true;
-    private static Thread movementThread = null;
+    private static volatile boolean keepMovingToPlayer = true;
+    private static volatile boolean keepMovingToBlock = true;
+    private static Thread playermovementThread = null;
+    private static Thread positionmovementThread = null;
     // Actor Movement Speed
     private static final double runSpeed = 0.2;
     private static final double walkSpeed = 0.14;
@@ -38,10 +40,15 @@ public class Movement {
     }
 
 
-    public static void nextMove(PlayerEntity player, ActorEntity actor) {
-        keepMoving=true;
+    public static void moveToPlayer(PlayerEntity player, ActorEntity actor) {
+        keepMovingToPlayer=true;
         moveTowardsPlayer(actor, player);
         if(actor.isDead() || actor.notInAnyWorld) stopMoving(actor);
+    }
+    public static void moveToBlockPos(BlockPos blockPos, ActorEntity actor) {
+        keepMovingToBlock=true;
+        moveTowardsPosition(actor, blockPos.toCenterPos());
+        if(actor.isDead() || actor.notInAnyWorld || actor.getBlockPos()==blockPos) stopMoving(actor);
     }
 
     public static void swim(ActorEntity actor, PlayerEntity player) {
@@ -60,6 +67,7 @@ public class Movement {
         }
     }
 
+
     private static Vec3d getSwimVector(ActorEntity actor, PlayerEntity player) {
         double x = actor.getVelocity().getX();
         double y = actor.getVelocity().getY();
@@ -74,13 +82,35 @@ public class Movement {
 
         return new Vec3d(x, y, z);
     }
+    public static void moveTowardsPosition(ActorEntity actor, Vec3d position) {
+        positionmovementThread=new Thread(() -> {
+            World world = actor.getEntityWorld();
+            while (keepMovingToBlock) {
+                    setCrouchingState(actor);
+                    Vec3d direction2 = getDirection(actor, position);
+                    direction2 = adjustDirectionForBlocks(actor, world, direction2);
+                    setActorVelocity(actor, direction2);
 
+                actor.setSwimming(actor.isSubmergedInWater());
+                synchronized(actor) {
+                    actor.setSprinting(false);
+                }
+            }
+        });
+        positionmovementThread.start();
+    }
+
+
+    private static Vec3d getDirection(ActorEntity actor, Vec3d position) {
+        Vec3d ActorPos = actor.getPos();
+        return position.subtract(ActorPos).normalize();
+    }
 
     public static void moveTowardsPlayer(ActorEntity actor, PlayerEntity player) {
-        movementThread = new Thread(() -> {
+        playermovementThread = new Thread(() -> {
             actor.isStuck = false;
             World world = actor.getEntityWorld();
-            while (keepMoving && world.getDimension() == player.getWorld().getDimension()) {
+            while (keepMovingToPlayer && world.getDimension() == player.getWorld().getDimension()) {
 
                 actor.checkAndTeleport(player);
 
@@ -92,8 +122,7 @@ public class Movement {
                     direction2 = adjustDirectionForBlocks(actor, world, direction2);
                     setActorVelocity(actor, direction2);
 
-                    if (actor.isTouchingWater()) actor.setSwimming(true);
-                    else actor.setSwimming(false);
+                    actor.setSwimming(actor.isSubmergedInWater());
                 }
                 synchronized(actor) {
                     actor.setSprinting(false);
@@ -102,7 +131,7 @@ public class Movement {
                 swim(actor,player);
             }
         });
-        movementThread.start();
+        playermovementThread.start();
     }
 
     private static void setCrouchingState(ActorEntity actor) {
@@ -146,10 +175,16 @@ public class Movement {
     }
 
     public static void stopMoving(ActorEntity actor) {
-        keepMoving = false;
-        if (movementThread != null) {
-            movementThread.interrupt();
-            movementThread = null;
+        keepMovingToPlayer = false;
+        keepMovingToBlock = false;
+        if (playermovementThread != null) {
+            playermovementThread.interrupt();
+            playermovementThread = null;
+        }
+        if (positionmovementThread!=null)
+        {
+            positionmovementThread.interrupt();
+            positionmovementThread = null;
         }
         actor.isFollowing=false;
     }

@@ -1,6 +1,7 @@
 package com.lumaa.act.item;
 
 import com.lumaa.act.ActMod;
+import com.lumaa.act.entity.ActorEntity;
 import com.lumaa.act.item.stick.*;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.item.Item;
