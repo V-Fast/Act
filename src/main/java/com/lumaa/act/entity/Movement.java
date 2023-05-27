@@ -34,7 +34,7 @@ public class Movement {
 
     public static void nextMove(PlayerEntity player, ActorEntity actor) {
         keepMoving=true;
-        moveTowardsPlayer(actor, player, 3d);
+        moveTowardsPlayer(actor, player);
         if(actor.isDead() || actor.notInAnyWorld) stopMoving(actor);
     }
 
@@ -50,7 +50,7 @@ public class Movement {
             else
                 vec = new Vec3d(actor.getVelocity().getX(), actor.getVelocity().getY(), actor.getVelocity().getZ());
             if (actor.isSubmergedInWater())actor.setPose(EntityPose.SWIMMING);
-            else actor.setPose(EntityPose.STANDING);
+            else setCrouchingState(actor);
             actor.setSwimming(true);
             actor.setVelocity(vec); // Set the actor's velocity to the upwards vector
         } else {
@@ -64,55 +64,24 @@ public class Movement {
         }
     }
 
-    public static void moveTowardsPlayer(ActorEntity actor, PlayerEntity player, double downSpeed) {
+    public static void moveTowardsPlayer(ActorEntity actor, PlayerEntity player) {
         movementThread = new Thread(() -> {
-            // This code looks trash but works good
             actor.isStuck = false;
-            while (keepMoving && actor.getWorld().getDimension() == player.getWorld().getDimension()) // So that it stops moving when player and actor are not in same dimension
-            {
+            World world = actor.getEntityWorld();
+            while (keepMoving && world.getDimension() == player.getWorld().getDimension()) {
 
-                actor.checkAndTeleport(player);//From ActorEntity.class
+                actor.checkAndTeleport(player);
 
-                double speed = getMovementSpeed(SpeedManagerStick.getState());
+                setCrouchingState(actor);
 
-                if (actor.isSubmergedInWater())speed=swimSpeed;
-
-                synchronized (actor) {
-                    if (SpeedManagerStick.getState() == EMovementState.SNEAK) {
-                        actor.setSneaking(true);
-                        actor.setPose(EntityPose.CROUCHING);
-                    } else {
-                        actor.setPose(EntityPose.STANDING);
-                        actor.setSneaking(false);
-                    }
-                    actor.setSprinting(speed>0.10);
-                }
-
-                // Set Sneaking to true if actor is supposed to sneak move
                 double distance = Math.sqrt(actor.squaredDistanceTo(player));
                 if (distance > 2) {
-                    Vec3d ActorPos = actor.getPos();
-                    Vec3d playerPos = player.getPos();
-                    Vec3d direction2 = playerPos.subtract(ActorPos).normalize();
+                    Vec3d direction2 = getDirection(actor, player);
+                    direction2 = adjustDirectionForBlocks(actor, world, direction2);
+                    setActorVelocity(actor, direction2);
 
-                    World world = actor.getEntityWorld();
-                    BlockPos blockPos = new BlockPos(BlockPos.ofFloored(ActorPos.add(direction2.multiply(speed))));
-                    BlockState blockState = world.getBlockState(blockPos);
-
-                    if (blockState.isAir()) {
-                        // if there is no solid ground, move the player down
-                        if (blockState.isOf(Blocks.WATER)) direction2 = direction2.subtract(0, 2, 0);//Gravity to affect less in water and lava so that it doesnt look like its struggling to float
-                        else if (blockState.isOf(Blocks.LAVA)) direction2 = direction2.subtract(0, 3, 0);
-                        else direction2 = direction2.subtract(0, 5, 0); //Gravity to be extreme so that it does not start floating
-                    } else if (blockState.isFullCube(world, blockPos)) {
-                        // if there is a solid block in the way, make the player jump
-                        actor.jump();
-                    }
-                    synchronized(actor) {
-                        actor.setVelocity(direction2.multiply(speed));
-                        if (actor.isTouchingWater()) actor.setSwimming(true);
-                        else actor.setSwimming(false);
-                    }
+                    if (actor.isTouchingWater()) actor.setSwimming(true);
+                    else actor.setSwimming(false);
                 }
                 synchronized(actor) {
                     actor.setSprinting(false);
@@ -122,6 +91,45 @@ public class Movement {
             }
         });
         movementThread.start();
+    }
+
+    private static void setCrouchingState(ActorEntity actor) {
+        if(SpeedManagerStick.getState() == EMovementState.SNEAK) {
+            actor.setSneaking(true);
+            actor.setPose(EntityPose.CROUCHING);
+        } else {
+            actor.setPose(EntityPose.STANDING);
+            actor.setSneaking(false);
+        }
+    }
+
+    private static Vec3d getDirection(ActorEntity actor, PlayerEntity player) {
+        Vec3d ActorPos = actor.getPos();
+        Vec3d playerPos = player.getPos();
+        return playerPos.subtract(ActorPos).normalize();
+    }
+
+    private static Vec3d adjustDirectionForBlocks(ActorEntity actor, World world, Vec3d direction2) {
+        double speed = getMovementSpeed(SpeedManagerStick.getState());
+        BlockPos blockPos = new BlockPos(BlockPos.ofFloored(actor.getPos().add(direction2.multiply(speed))));
+        BlockState blockState = world.getBlockState(blockPos);
+
+        if (blockState.isAir()) {
+            if (blockState.isOf(Blocks.WATER)) direction2 = direction2.subtract(0, 2, 0);
+            else if (blockState.isOf(Blocks.LAVA)) direction2 = direction2.subtract(0, 3, 0);
+            else direction2 = direction2.subtract(0, 5, 0);
+        } else if (blockState.isFullCube(world, blockPos)) {
+            actor.jump();
+        }
+        return direction2;
+    }
+
+    private static void setActorVelocity(ActorEntity actor, Vec3d direction2) {
+        double speed = getMovementSpeed(SpeedManagerStick.getState());
+        synchronized(actor) {
+            actor.setSprinting(speed>0.10);
+            actor.setVelocity(direction2.multiply(speed));
+        }
     }
 
     public static void stopMoving(ActorEntity actor) {
