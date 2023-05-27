@@ -38,31 +38,38 @@ public class Movement {
         if(actor.isDead() || actor.notInAnyWorld) stopMoving(actor);
     }
 
-    public static void swim(ActorEntity actor,PlayerEntity player) {
-        Vec3d vec;
-        if (actor.isSubmergedInWater()) { // Check if the actor is in water
-            if (actor.isTouchingWater() && player.isSubmergedInWater())
-                vec = new Vec3d(actor.getVelocity().getX(), -0.001, actor.getVelocity().getZ());
-            else if(player.isTouchingWater())
-                vec = new Vec3d(actor.getVelocity().getX(), 0.3,  actor.getVelocity().getZ()); // Create a vector pointing upwards
-            else if (actor.isSubmergedInWater() && actor.hurtByWater())
-                vec = new Vec3d( actor.getVelocity().getX(),0.6, actor.getVelocity().getZ()); // To move the actor upwards if it is taking damage in water
-            else
-                vec = new Vec3d(actor.getVelocity().getX(), actor.getVelocity().getY(), actor.getVelocity().getZ());
-            if (actor.isSubmergedInWater())actor.setPose(EntityPose.SWIMMING);
-            else setCrouchingState(actor);
+    public static void swim(ActorEntity actor, PlayerEntity player) {
+        if (actor.isSubmergedInWater()) {
+            Vec3d swimVector = getSwimVector(actor, player);
+            actor.setPose(EntityPose.SWIMMING);
             actor.setSwimming(true);
-            actor.setVelocity(vec); // Set the actor's velocity to the upwards vector
+            actor.setVelocity(swimVector);
         } else {
             actor.setSwimming(false);
             actor.setPose(EntityPose.STANDING);
         }
-        if (actor.isInLava())
-        {
-            vec = new Vec3d( actor.getVelocity().getX(), 0.1,  actor.getVelocity().getZ()); // Create a vector pointing upwards
-            actor.setVelocity(vec); // Set the actor's velocity to the upwards vector
+        if (actor.isInLava()) {
+            Vec3d lavaSwimVector = new Vec3d(actor.getVelocity().getX(), 0.1, actor.getVelocity().getZ());
+            actor.setVelocity(lavaSwimVector);
         }
     }
+
+    private static Vec3d getSwimVector(ActorEntity actor, PlayerEntity player) {
+        double x = actor.getVelocity().getX();
+        double y = actor.getVelocity().getY();
+        double z = actor.getVelocity().getZ();
+
+        if (actor.isTouchingWater() && player.isSubmergedInWater()) {
+            y = -0.001;
+        } else if (player.isTouchingWater()) {
+            y = 0.3;
+        } else if (actor.hurtByWater()) {
+            y = 0.6;
+        }
+
+        return new Vec3d(x, y, z);
+    }
+
 
     public static void moveTowardsPlayer(ActorEntity actor, PlayerEntity player) {
         movementThread = new Thread(() -> {
