@@ -2,7 +2,7 @@ package com.lumaa.act.item.stick;
 
 import com.lumaa.act.ai.ActorAction;
 import com.lumaa.act.entity.ActorEntity;
-import com.lumaa.act.pathfinding.Path;
+import com.lumaa.act.entity.Movement;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
@@ -26,10 +26,10 @@ public class FollowStick extends Item {
             user.playSound(SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.PLAYERS, 1f, follows ? 0.8f : 1f);
 
             if (actor.isFollowing) {
-                Path.nextMove(user, actor);
+                Movement.nextMove(user, actor);
             } else {
                 actor.getAi().action.setAction(ActorAction.Actions.NONE);
-                Path.stopMoving(actor);
+                Movement.stopMoving(actor);
             }
             return ActionResult.SUCCESS;
         }

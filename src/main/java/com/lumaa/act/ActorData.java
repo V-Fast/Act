@@ -1,7 +1,7 @@
 package com.lumaa.act;
 
 import com.lumaa.act.entity.ActorEntity;
-import com.lumaa.act.pathfinding.Path;
+import com.lumaa.act.entity.Movement;
 import com.mojang.authlib.GameProfile;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -47,7 +47,7 @@ public class ActorData implements ModInitializer {
 
                     // Add the actors to the world and send S2C packets
                     for (ActorEntity actor : actors) {
-                        Path.stopMoving(actor);
+                        Movement.stopMoving(actor);
                         ServerWorld actorWorld = server.getWorld(actor.world.getRegistryKey());
                         assert actorWorld != null;
                         actor.networkHandler = new ServerPlayNetworkHandler(server, new ClientConnection(NetworkSide.CLIENTBOUND), actor);
@@ -105,7 +105,7 @@ public class ActorData implements ModInitializer {
             actorList = new NbtList();
         }
         for (ActorEntity actor : actors) {
-            if (actor.isFollowing) Path.stopMoving(actor);
+            if (actor.isFollowing) Movement.stopMoving(actor);
             NbtCompound actorNbt = new NbtCompound();
             actorNbt.putDouble("X", actor.getX());
             actorNbt.putDouble("Y", actor.getY());
