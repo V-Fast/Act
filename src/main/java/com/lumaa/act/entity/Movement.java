@@ -52,7 +52,7 @@ public class Movement {
             actor.setVelocity(swimVector);
         } else {
             actor.setSwimming(false);
-            actor.setPose(EntityPose.STANDING);
+            setCrouchingState(actor);
         }
         if (actor.isInLava()) {
             Vec3d lavaSwimVector = new Vec3d(actor.getVelocity().getX(), 0.1, actor.getVelocity().getZ());
