@@ -4,11 +4,17 @@ import com.lumaa.act.item.stick.SpeedManagerStick;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.EntityPose;
+import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.entity.damage.DamageSources;
+import net.minecraft.entity.damage.DamageType;
+import net.minecraft.entity.damage.DamageTypes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+
+import java.util.Objects;
 
 public class Movement {
     private static volatile boolean keepMoving = true;
@@ -59,13 +65,12 @@ public class Movement {
         double y = actor.getVelocity().getY();
         double z = actor.getVelocity().getZ();
 
-        if (actor.isTouchingWater() && player.isSubmergedInWater()) {
+        if (actor.isTouchingWater() && player.isSubmergedInWater())
             y = -0.001;
-        } else if (player.isTouchingWater()) {
+        else if (player.isTouchingWater())
             y = 0.3;
-        } else if (actor.hurtByWater()) {
+        else
             y = 0.6;
-        }
 
         return new Vec3d(x, y, z);
     }
@@ -135,6 +140,7 @@ public class Movement {
         double speed = getMovementSpeed(SpeedManagerStick.getState());
         synchronized(actor) {
             actor.setSprinting(speed>0.10);
+            if (actor.isSubmergedInWater())speed=swimSpeed;
             actor.setVelocity(direction2.multiply(speed));
         }
     }
