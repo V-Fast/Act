@@ -21,7 +21,7 @@ public class Movement {
     private static Thread movementThread = null;
     // Actor Movement Speed
     private static final double runSpeed = 0.2;
-    private static final double walkSpeed = 0.1;
+    private static final double walkSpeed = 0.14;
     private static final double sneakSpeed = 0.04;
     private static final double swimSpeed = 0.30;
 
