@@ -26,10 +26,10 @@ public class FollowStick extends Item {
             user.playSound(SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.PLAYERS, 1f, follows ? 0.8f : 1f);
 
             if (actor.isFollowing) {
-                Path.nextMove(user, actor, user.getBlockPos());
+                Path.nextMove(user, actor);
             } else {
                 actor.getAi().action.setAction(ActorAction.Actions.NONE);
-                Path.stopMoving();
+                Path.stopMoving(actor);
             }
             return ActionResult.SUCCESS;
         }

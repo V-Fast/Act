@@ -31,7 +31,6 @@ public class ActMod implements ModInitializer {
     public void onInitialize() {
         npc.register();
         ActItems.registerModItems();
-        ServerPlayConnectionEvents.DISCONNECT.register(( sender, server)->Path.stopMoving());
 
         // print mod mini-motto
         print("Actors are on stage");

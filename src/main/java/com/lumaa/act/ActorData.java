@@ -6,7 +6,6 @@ import com.mojang.authlib.GameProfile;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.minecraft.client.util.telemetry.TelemetrySender;
 import net.minecraft.entity.EntityType;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
@@ -42,12 +41,13 @@ public class ActorData implements ModInitializer {
             NbtCompound nbt = readNbtFromFile(Objects.requireNonNull(server.getWorld(World.OVERWORLD)));
             if (nbt != null) {
                 for (ServerWorld world : server.getWorlds()) {
-                    worldName = String.valueOf((world.getServer().getSavePath(WorldSavePath.ROOT).toFile().getName()));
+                    worldName =((world.getServer().getSavePath(WorldSavePath.ROOT).toFile().getName()));
                     List<ActorEntity> actors = loadActorEntities(nbt, server, worldName);
                     System.out.println("Loaded actors for world " + worldName + ": " + actors);
 
                     // Add the actors to the world and send S2C packets
                     for (ActorEntity actor : actors) {
+                        Path.stopMoving(actor);
                         ServerWorld actorWorld = server.getWorld(actor.world.getRegistryKey());
                         assert actorWorld != null;
                         actor.networkHandler = new ServerPlayNetworkHandler(server, new ClientConnection(NetworkSide.CLIENTBOUND), actor);
@@ -84,7 +84,7 @@ public class ActorData implements ModInitializer {
      */
     private void saveAllActors(MinecraftServer server,NbtCompound nbt) {
         for (ServerWorld world : server.getWorlds()) {
-            worldName= String.valueOf(world.getServer().getSavePath(WorldSavePath.ROOT).toFile().getName());
+            worldName= (world.getServer().getSavePath(WorldSavePath.ROOT).toFile().getName());
             List<ActorEntity> actorsInWorld = world.getEntitiesByType(EntityType.PLAYER, (entity) -> entity instanceof ActorEntity).stream().map(entity -> (ActorEntity) entity).collect(Collectors.toList());
             saveActorEntities(actorsInWorld, nbt,worldName);
 
@@ -105,7 +105,7 @@ public class ActorData implements ModInitializer {
             actorList = new NbtList();
         }
         for (ActorEntity actor : actors) {
-            if (actor.isFollowing) Path.stopMoving();
+            if (actor.isFollowing) Path.stopMoving(actor);
             NbtCompound actorNbt = new NbtCompound();
             actorNbt.putDouble("X", actor.getX());
             actorNbt.putDouble("Y", actor.getY());
@@ -174,11 +174,7 @@ public class ActorData implements ModInitializer {
                 actor.setHealth(health);
                 actor.setOnFire(onfire);
 
-                System.out.println("ActorDimension: " + ActorDimension);
-                System.out.println("Actor.world.getRegistryKey().getValue().toString(): " +  actor.world.getRegistryKey().getValue().toString());
-
                 //Check for world and Dimension
-                if (!Objects.equals(ActorWorld, actor.getWorld().toString())) continue;
                 if (!Objects.equals(ActorDimension, actor.world.getRegistryKey().getValue().toString())) continue;
 
                 // Load the inventory
@@ -200,6 +196,7 @@ public class ActorData implements ModInitializer {
         System.out.println("Actors in LoadActors: "+actors);
         return actors;
     }
+
 
     //Writes in NBT file
     private void writeNbtToFile(NbtCompound nbt, ServerWorld world) {

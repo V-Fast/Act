@@ -5,7 +5,10 @@ import com.lumaa.act.packet.ActorPackets;
 import com.mojang.authlib.GameProfile;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.client.render.entity.PlayerModelPart;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.ClientConnection;
@@ -21,10 +24,12 @@ import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
 public class ActorEntity extends ServerPlayerEntity {
     public GameProfile gameProfile;
+    private PlayerEntity player;
     private ActorAI ai;
     public boolean isFollowing = false;
     public boolean isStuck = false;
@@ -58,6 +63,36 @@ public class ActorEntity extends ServerPlayerEntity {
             setVisiblePart(part, visible);
         }
     }
+    public void checkAndTeleport(PlayerEntity player) {
+        // Check if the actor is in the Nether or the End
+        if (this.world.getRegistryKey() == World.OVERWORLD||this.world.getRegistryKey() == World.NETHER || this.world.getRegistryKey() == World.END) {
+            // Get the actor's position
+            BlockPos actorPos = this.getBlockPos();
+            // Search for Nether and End portal blocks in a 2x2x2 area around the actor
+            BlockPos portalPos = null;
+            for (int x = -1; x <= 1; x++) {
+                for (int y = -1; y <= 1; y++) {
+                    for (int z = -1; z <= 1; z++) {
+                        BlockPos pos = actorPos.add(x, y, z);
+                        BlockState state = world.getBlockState(pos);
+                        if (state.isOf(Blocks.NETHER_PORTAL) || state.isOf(Blocks.END_PORTAL)) {
+                            // Found a Nether or End portal block
+                            portalPos = pos;
+                            break;
+                        }
+                    }
+                }
+            }
+            if (portalPos != null && player.world.getRegistryKey() != this.world.getRegistryKey()) {
+                // There is a portal nearby and the player is in a different dimension, teleport the actor to the player's position
+                ServerWorld targetWorld = this.getServer().getWorld(player.world.getRegistryKey());
+                this.teleport(targetWorld, player.getBlockPos());
+            }
+        }
+    }
+
+
+
 
     /**
      * Shows/hides a toggleable layer

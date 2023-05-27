@@ -21,9 +21,9 @@ public class Path {
     private static double prevDistance = 0;
 
     // Actor Movement Speed
-    private static final double runSpeed = 0.15;
+    private static final double runSpeed = 0.17;
     private static final double walkSpeed = 0.1;
-    private static final double sneakSpeed = 0.035;
+    private static final double sneakSpeed = 0.04;
 
     public static double getMovementSpeed(EMovementState movementState) {
         if (movementState == EMovementState.WALK) {
@@ -38,10 +38,10 @@ public class Path {
     }
 
 
-    public static void nextMove(PlayerEntity player, ActorEntity actor, BlockPos playerPos) {
-        keepMoving = true;
+    public static void nextMove(PlayerEntity player, ActorEntity actor) {
+        keepMoving=true;
         moveTowardsPlayer(actor, player, 3d);
-        if(actor.isDead() || actor.notInAnyWorld) stopMoving();
+        if(actor.isDead() || actor.notInAnyWorld) stopMoving(actor);
     }
 
     public static void swimUp(ActorEntity actor,PlayerEntity player) {
@@ -69,23 +69,21 @@ public class Path {
         movementThread = new Thread(() -> {
             // This code looks trash but works good
             actor.isStuck = false;
-            EntityPose previousPose = actor.getPose();
-            while (keepMoving) {
+            while (keepMoving && actor.getWorld().getDimension()==player.getWorld().getDimension()) // So that it stops moving when player and actor are not in same dimension
+            {
+                actor.checkAndTeleport(player);
                 double speed = getMovementSpeed(SpeedManagerStick.getState());
                 if(SpeedManagerStick.getState() == EMovementState.SNEAK) {
                     actor.setSneaking(true);
-                    previousPose = actor.getPose();
                     actor.setPose(EntityPose.CROUCHING);
                 } else {
-                    actor.setPose(previousPose);
+                    actor.setPose(EntityPose.STANDING);
                     actor.setSneaking(false);
                 }
 
                 // Set Sneaking to true if actor is supposed to sneak move
                 double distance = Math.sqrt(actor.squaredDistanceTo(player));
                 if (distance > 3) {
-                    actor.isFollowing = true;
-
                     Vec3d ActorPos = actor.getPos();
                     Vec3d playerPos = player.getPos();
 
@@ -120,20 +118,24 @@ public class Path {
                         // The actor is not stuck, reset the isStuck flag
                         actor.isStuck = false;
                     }
-                    actor.setSprinting(speed > 0.03);
-                    actor.setVelocity(direction2.multiply(speed));
+                    synchronized(actor) {
+                        actor.setSprinting(speed > 0.03);
+                        actor.setVelocity(direction2.multiply(speed));
+                    }
 
                     if (actor.isTouchingWater()) actor.setSwimming(true);
                     else actor.setSwimming(false);
                 }
-                actor.setSprinting(false);
-                actor.isFollowing = false;
+                synchronized(actor) {
+                    actor.setSprinting(false);
+                }
                 lookAt(actor, player);
                 swimUp(actor,player);
             }
         });
         movementThread.start();
     }
+
 
     /*
     To check if the actor is stuck and then display the message if it is. Currently, awful
@@ -173,12 +175,13 @@ public class Path {
 
 
 
-    public static void stopMoving() {
+    public static void stopMoving(ActorEntity actor) {
         keepMoving = false;
         if (movementThread != null) {
             movementThread.interrupt();
             movementThread = null;
         }
+        actor.isFollowing=false;
     }
 
     public static void lookAt(ActorEntity actor, PlayerEntity player2) {
@@ -190,26 +193,6 @@ public class Path {
         float pitch = (float) -(MathHelper.atan2(dy, distance) * (180 / Math.PI));
         actor.setYaw(yaw);
         actor.setPitch(pitch);
-    }
-
-    public static Direction getDirection(ActorEntity actor, PlayerEntity player2) {
-        BlockPos pos1 = actor.getBlockPos();
-        BlockPos pos2 = player2.getBlockPos();
-        int dx = pos2.getX() - pos1.getX();
-        int dz = pos2.getZ() - pos1.getZ();
-        if (Math.abs(dx) > Math.abs(dz)) {
-            if (dx > 0) {
-                return Direction.EAST;
-            } else {
-                return Direction.WEST;
-            }
-        } else {
-            if (dz > 0) {
-                return Direction.SOUTH;
-            } else {
-                return Direction.NORTH;
-            }
-        }
     }
     public enum EMovementState {
         WALK,

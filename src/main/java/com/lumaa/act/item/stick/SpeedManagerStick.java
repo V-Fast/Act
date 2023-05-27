@@ -5,6 +5,7 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 
@@ -25,6 +26,7 @@ public class SpeedManagerStick extends Item {
             case 2 -> movementState = Path.EMovementState.SNEAK;
             default -> movementState= Path.EMovementState.WALK;
         }
+        user.sendMessage(Text.of("Movement Speed State: "+movementState),true);
         return ActionResult.SUCCESS;
     }
     public static Path.EMovementState getState()
