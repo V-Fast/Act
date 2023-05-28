@@ -22,10 +22,10 @@ public class FollowStick extends Item {
         if (entity instanceof ActorEntity) {
             ActorEntity actor = (ActorEntity) entity;
             boolean follows = actor.getAi().action.getAction().equals(ActorAction.Actions.FOLLOW);
-            actor.isFollowing = !actor.isFollowing; // Update the isFollowing state for this actor
+            actor.isFollowingPlayer = !actor.isFollowingPlayer; // Update the isFollowinglayer state for this actor
             user.playSound(SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.PLAYERS, 1f, follows ? 0.8f : 1f);
 
-            if (actor.isFollowing) {
+            if (actor.isFollowingPlayer) {
                 Movement.moveToPlayer(user, actor);
             } else {
                 actor.getAi().action.setAction(ActorAction.Actions.NONE);

@@ -2,7 +2,6 @@ package com.lumaa.act.item.stick;
 
 import com.lumaa.act.ai.ActorMovement;
 import com.lumaa.act.entity.ActorEntity;
-import com.lumaa.act.entity.Movement;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.command.argument.EntityAnchorArgumentType;
 import net.minecraft.entity.LivingEntity;
@@ -24,7 +23,8 @@ import java.util.Objects;
 import static com.lumaa.act.entity.Movement.*;
 
 public class TravelStick extends Item {
-    private ActorEntity actor=null;
+    private ActorEntity actor;
+    private Vec3d VecblockPos;
 
     public TravelStick(Item.Settings settings) {
         super(settings.maxCount(1));
@@ -36,33 +36,39 @@ public class TravelStick extends Item {
         if (entity instanceof ActorEntity actor && actor.canSee(user)) {
             user.playSound(SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.PLAYERS, 1f, 1f);
             actor.getAi().moveToEntity(user, ActorMovement.MovementState.RUN);
-            if (actor.getAi().action.getPlayerFollow()!=null) actor.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, actor.getAi().action.getPlayerFollow().getPos());
+            if (actor.getAi().action.getPlayerFollow() != null)
+                actor.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, actor.getAi().action.getPlayerFollow().getPos());
             setActor(actor);
             return ActionResult.SUCCESS;
         }
         return ActionResult.FAIL;
     }
-    private void setActor(ActorEntity actor)
-    {
-        this.actor=actor;
+
+    private void setActor(ActorEntity actor) {
+        this.actor = actor;
     }
 
     @Override
-    public ActionResult useOnBlock(ItemUsageContext context)
-    {
-        BlockPos blockPos = context.getBlockPos();
-        assert MinecraftClient.getInstance().player != null;
-        if (actor == null) {
-            MinecraftClient.getInstance().player.sendMessage(Text.of("Right-Click on an Actor first").copy().formatted(Formatting.RED), false);
-            MinecraftClient.getInstance().player.playSound(SoundEvents.ENTITY_VILLAGER_NO, SoundCategory.PLAYERS, 1f, 1f);
-        } else {
-            MinecraftClient.getInstance().player.playSound(SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.PLAYERS, 1f, 1f);
-            actor.setVelocity(0,0,0);
-            stopMoving(actor);
-            moveToBlockPos(blockPos,actor);
-            if (actor.getBlockPos()==blockPos)stopMoving(actor);
+    public ActionResult useOnBlock(ItemUsageContext context) {
+        if (!context.getWorld().isClient) {
+            VecblockPos = null;
+            VecblockPos = context.getHitPos();
+            assert MinecraftClient.getInstance().player != null;
+
+            if (actor != null) actor.isFollowingBlock = !actor.isFollowingBlock; // Update the isFollowingBlock state for this actor
+            if (actor == null) {
+                MinecraftClient.getInstance().player.sendMessage(Text.of("Right-Click on an Actor first").copy().formatted(Formatting.RED), false);
+                MinecraftClient.getInstance().player.playSound(SoundEvents.ENTITY_VILLAGER_NO, SoundCategory.PLAYERS, 1f, 1f);
+            } else if (!actor.isFollowingBlock) {
+                MinecraftClient.getInstance().player.playSound(SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.PLAYERS, 1f, 1f);
+                System.out.println("BlockPos recieved: " + BlockPos.ofFloored(VecblockPos));
+                stopMovingToBlock(actor);
+                moveToBlockPos(BlockPos.ofFloored(VecblockPos), actor);
+                if (Objects.equals(actor.getBlockPos(), BlockPos.ofFloored(VecblockPos))) stopMoving(actor);
+            } else
+                stopMovingToBlock(actor);
         }
-        return super.useOnBlock(context);
+        return ActionResult.FAIL;
     }
 
 

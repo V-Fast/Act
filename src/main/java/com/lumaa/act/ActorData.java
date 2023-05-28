@@ -105,7 +105,7 @@ public class ActorData implements ModInitializer {
             actorList = new NbtList();
         }
         for (ActorEntity actor : actors) {
-            if (actor.isFollowing) Movement.stopMoving(actor);
+            if (actor.isFollowingBlock || actor.isFollowingPlayer) Movement.stopMoving(actor);
             NbtCompound actorNbt = new NbtCompound();
             actorNbt.putDouble("X", actor.getX());
             actorNbt.putDouble("Y", actor.getY());

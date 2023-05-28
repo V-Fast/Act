@@ -1,31 +1,27 @@
 package com.lumaa.act.entity;
 
 import com.lumaa.act.item.stick.SpeedManagerStick;
+import net.fabricmc.loader.impl.lib.sat4j.core.Vec;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.EntityPose;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.damage.DamageSources;
-import net.minecraft.entity.damage.DamageType;
-import net.minecraft.entity.damage.DamageTypes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
-import java.util.Objects;
-
 public class Movement {
-    private static volatile boolean keepMovingToPlayer = true;
-    private static volatile boolean keepMovingToBlock = true;
-    private static Thread playermovementThread = null;
-    private static Thread positionmovementThread = null;
     // Actor Movement Speed
     private static final double runSpeed = 0.2;
     private static final double walkSpeed = 0.14;
     private static final double sneakSpeed = 0.04;
     private static final double swimSpeed = 0.30;
+    private static volatile boolean keepMovingToPlayer = true;
+    private static volatile boolean keepMovingToBlock = true;
+    private static Vec3d goal;
+    private static Thread playermovementThread = null;
+    private static Thread positionmovementThread = null;
 
     public static double getMovementSpeed(EMovementState movementState) {
         if (movementState == EMovementState.WALK) {
@@ -41,14 +37,15 @@ public class Movement {
 
 
     public static void moveToPlayer(PlayerEntity player, ActorEntity actor) {
-        keepMovingToPlayer=true;
+        keepMovingToPlayer = true;
         moveTowardsPlayer(actor, player);
-        if(actor.isDead() || actor.notInAnyWorld) stopMoving(actor);
+        if (actor.isDead() || actor.notInAnyWorld) stopMoving(actor);
     }
+
     public static void moveToBlockPos(BlockPos blockPos, ActorEntity actor) {
-        keepMovingToBlock=true;
+        keepMovingToBlock = true;
         moveTowardsPosition(actor, blockPos.toCenterPos());
-        if(actor.isDead() || actor.notInAnyWorld || actor.getBlockPos()==blockPos) stopMoving(actor);
+        if (actor.isDead() || actor.notInAnyWorld || actor.getBlockPos() == blockPos) stopMoving(actor);
     }
 
     public static void swim(ActorEntity actor, PlayerEntity player) {
@@ -82,19 +79,24 @@ public class Movement {
 
         return new Vec3d(x, y, z);
     }
-    public static void moveTowardsPosition(ActorEntity actor, Vec3d position) {
-        positionmovementThread=new Thread(() -> {
-            World world = actor.getEntityWorld();
-            while (keepMovingToBlock) {
-                    setCrouchingState(actor);
-                    Vec3d direction2 = getDirection(actor, position);
-                    direction2 = adjustDirectionForBlocks(actor, world, direction2);
-                    setActorVelocity(actor, direction2);
 
+    public static void moveTowardsPosition(ActorEntity actor, Vec3d position) {
+        if (positionmovementThread!=null)positionmovementThread.interrupt();
+        positionmovementThread = new Thread(() -> {
+            World world = actor.getEntityWorld();
+            double distance = actor.getPos().distanceTo(position);
+            if (distance < 0.5) {
+                stopMovingToBlock(actor);
+                return;
+            }
+            while (keepMovingToBlock) {
+                setCrouchingState(actor);
+                Vec3d direction2 = getDirection(actor, position);
+                goal = (position);
+               // System.out.println("Current Goal: " + goal);
+                direction2 = adjustDirectionForBlocks(actor, world, direction2);
+                setActorVelocity(actor, direction2);
                 actor.setSwimming(actor.isSubmergedInWater());
-                synchronized(actor) {
-                    actor.setSprinting(false);
-                }
             }
         });
         positionmovementThread.start();
@@ -124,18 +126,18 @@ public class Movement {
 
                     actor.setSwimming(actor.isSubmergedInWater());
                 }
-                synchronized(actor) {
+                synchronized (actor) {
                     actor.setSprinting(false);
                 }
                 lookAt(actor, player);
-                swim(actor,player);
+                swim(actor, player);
             }
         });
         playermovementThread.start();
     }
 
     private static void setCrouchingState(ActorEntity actor) {
-        if(SpeedManagerStick.getState() == EMovementState.SNEAK) {
+        if (SpeedManagerStick.getState() == EMovementState.SNEAK) {
             actor.setSneaking(true);
             actor.setPose(EntityPose.CROUCHING);
         } else {
@@ -154,7 +156,6 @@ public class Movement {
         double speed = getMovementSpeed(SpeedManagerStick.getState());
         BlockPos blockPos = new BlockPos(BlockPos.ofFloored(actor.getPos().add(direction2.multiply(speed))));
         BlockState blockState = world.getBlockState(blockPos);
-
         if (blockState.isAir()) {
             if (blockState.isOf(Blocks.WATER)) direction2 = direction2.subtract(0, 2, 0);
             else if (blockState.isOf(Blocks.LAVA)) direction2 = direction2.subtract(0, 3, 0);
@@ -167,26 +168,31 @@ public class Movement {
 
     private static void setActorVelocity(ActorEntity actor, Vec3d direction2) {
         double speed = getMovementSpeed(SpeedManagerStick.getState());
-        synchronized(actor) {
-            actor.setSprinting(speed>0.10);
-            if (actor.isSubmergedInWater())speed=swimSpeed;
-            actor.setVelocity(direction2.multiply(speed));
+        if (actor != null) {
+            synchronized (actor) {
+                if (actor.isSubmergedInWater()) speed = swimSpeed;
+                actor.setVelocity(direction2.multiply(speed));
+              //  System.out.println("Velocity of actor: " + direction2.multiply(speed));
+            }
         }
+    }
+    public static void stopMovingToBlock(ActorEntity actor)
+    {
+        keepMovingToBlock=false;
+        if (positionmovementThread != null) {
+            positionmovementThread.interrupt();
+            positionmovementThread = null;
+        }
+        actor.isFollowingBlock = false;
     }
 
     public static void stopMoving(ActorEntity actor) {
         keepMovingToPlayer = false;
-        keepMovingToBlock = false;
         if (playermovementThread != null) {
             playermovementThread.interrupt();
             playermovementThread = null;
         }
-        if (positionmovementThread!=null)
-        {
-            positionmovementThread.interrupt();
-            positionmovementThread = null;
-        }
-        actor.isFollowing=false;
+        actor.isFollowingPlayer = false;
     }
 
     public static void lookAt(ActorEntity actor, PlayerEntity player2) {
@@ -199,6 +205,7 @@ public class Movement {
         actor.setYaw(yaw);
         actor.setPitch(pitch);
     }
+
     public enum EMovementState {
         WALK,
         SNEAK,
