@@ -98,6 +98,7 @@ public class Movement {
                 setActorVelocity(actor, direction2);
                 actor.setSwimming(actor.isSubmergedInWater());
             }
+            if (actor.getPos()==position)keepMovingToBlock=false;
         });
         positionmovementThread.start();
     }
