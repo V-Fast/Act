@@ -34,6 +34,14 @@ public class ActorEntity extends ServerPlayerEntity {
     public boolean isFollowingPlayer = false;
     public boolean isFollowingBlock = false;
     public boolean isStuck = false;
+    public volatile boolean keepMovingToPlayer = true;
+    public volatile boolean keepMovingToBlock = true;
+    public Thread playermovementThread = null;
+    public Thread positionmovementThread = null;
+    private final double runSpeed = 0.2;
+    private final double walkSpeed = 0.14;
+    private final double sneakSpeed = 0.04;
+    public final double swimSpeed = 0.30;
 
     public ActorEntity(MinecraftServer server, ServerWorld world, GameProfile profile) {
         super(server, world, profile);
@@ -92,7 +100,17 @@ public class ActorEntity extends ServerPlayerEntity {
         }
     }
 
-
+    public double getMovementSpeed(Movement.EMovementState movementState) {
+        if (movementState == Movement.EMovementState.WALK) {
+            return walkSpeed;
+        } else if (movementState == Movement.EMovementState.RUN) {
+            return runSpeed;
+        } else if (movementState == Movement.EMovementState.SNEAK) {
+            return sneakSpeed;
+        } else {
+            return 0.0d;
+        }
+    }
 
 
     /**

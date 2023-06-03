@@ -19,8 +19,7 @@ public class FollowStick extends Item {
 
     @Override
     public ActionResult useOnEntity(ItemStack stack, PlayerEntity user, LivingEntity entity, Hand hand) {
-        if (entity instanceof ActorEntity) {
-            ActorEntity actor = (ActorEntity) entity;
+        if (entity instanceof ActorEntity actor) {
             boolean follows = actor.getAi().action.getAction().equals(ActorAction.Actions.FOLLOW);
             actor.isFollowingPlayer = !actor.isFollowingPlayer; // Update the isFollowinglayer state for this actor
             user.playSound(SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.PLAYERS, 1f, follows ? 0.8f : 1f);
@@ -28,7 +27,6 @@ public class FollowStick extends Item {
             if (actor.isFollowingPlayer) {
                 Movement.moveToPlayer(user, actor);
             } else {
-                actor.getAi().action.setAction(ActorAction.Actions.NONE);
                 Movement.stopMoving(actor);
             }
             return ActionResult.SUCCESS;

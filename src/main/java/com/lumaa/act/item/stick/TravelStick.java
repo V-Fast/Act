@@ -55,16 +55,14 @@ public class TravelStick extends Item {
             VecblockPos = context.getHitPos();
             assert MinecraftClient.getInstance().player != null;
 
-            if (actor != null) actor.isFollowingBlock = !actor.isFollowingBlock; // Update the isFollowingBlock state for this actor
+            //if (actor != null) actor.isFollowingBlock = !actor.isFollowingBlock; // Update the isFollowingBlock state for this actor
             if (actor == null) {
                 MinecraftClient.getInstance().player.sendMessage(Text.of("Right-Click on an Actor first").copy().formatted(Formatting.RED), false);
                 MinecraftClient.getInstance().player.playSound(SoundEvents.ENTITY_VILLAGER_NO, SoundCategory.PLAYERS, 1f, 1f);
             } else if (!actor.isFollowingBlock) {
                 MinecraftClient.getInstance().player.playSound(SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.PLAYERS, 1f, 1f);
-                System.out.println("BlockPos recieved: " + BlockPos.ofFloored(VecblockPos));
-                stopMovingToBlock(actor);
-                moveToBlockPos(BlockPos.ofFloored(VecblockPos), actor);
-                if (Objects.equals(actor.getBlockPos(), BlockPos.ofFloored(VecblockPos))) stopMoving(actor);
+                actor.getAi().moveTo(ActorMovement.MovementState.RUN,VecblockPos);
+                if (Objects.equals(actor.getBlockPos(), BlockPos.ofFloored(VecblockPos))) actor.getAi().movement.pathfinder.path.stop();
             } else
                 stopMovingToBlock(actor);
         }

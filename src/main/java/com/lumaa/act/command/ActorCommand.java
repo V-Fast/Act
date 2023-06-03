@@ -1,5 +1,8 @@
 package com.lumaa.act.command;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.lumaa.act.entity.ActorEntity;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.builder.ArgumentBuilder;
@@ -21,7 +24,9 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
+
 
 public class ActorCommand {
     public static final String name = "actor";
@@ -30,6 +35,7 @@ public class ActorCommand {
 
     public int onRun(CommandContext<ServerCommandSource> command, String username) {
             UUID uuid = lookForPlayer(username);
+            username=getUsername(username);
 
             ServerCommandSource source = command.getSource();
             Vec3d pos = source.getPosition();
@@ -78,7 +84,55 @@ public class ActorCommand {
         return ActorCommand.name;
     }
 
+    public String getUsername(String arg) {
+        try {
+            URL url = new URL("https://api.mojang.com/users/profiles/minecraft/" + arg);
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con.setRequestMethod("GET");
+
+            BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+            String inputLine;
+            StringBuilder response = new StringBuilder();
+            while ((inputLine = in.readLine()) != null) {
+                response.append(inputLine);
+            }
+            in.close();
+
+            // Parse the JSON response to extract the UUID
+            JsonObject jsonResponse = JsonParser.parseString(response.toString()).getAsJsonObject();
+            String name = jsonResponse.get("name").getAsString();
+            return name;
+        } catch (Exception e) {
+            return arg;
+        }
+    }
+
+
     public UUID lookForPlayer(String arg) {
+        try {
+            URL url = new URL("https://api.mojang.com/users/profiles/minecraft/" + arg);
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con.setRequestMethod("GET");
+
+            BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+            String inputLine;
+            StringBuilder response = new StringBuilder();
+            while ((inputLine = in.readLine()) != null) {
+                response.append(inputLine);
+            }
+            in.close();
+
+            // Parse the JSON response to extract the UUID
+            JsonObject jsonResponse = JsonParser.parseString(response.toString()).getAsJsonObject();
+            String uuidString = jsonResponse.get("id").getAsString();
+            return UUID.fromString(formatUuid(uuidString));
+        } catch (Exception e) {
+            return lookForPlayerUsingMinecraftAPI(arg);
+        }
+    }
+
+
+    public UUID lookForPlayerUsingMinecraftAPI(String arg) {
         try {
             URL url = new URL("https://minecraft-api.com/api/uuid/" + arg);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
@@ -102,6 +156,7 @@ public class ActorCommand {
             // do literally nothing about it lmao
         }
     }
+
 
     public static String formatUuid(String uuidString) {
         String formattedUuidString = uuidString.replaceAll(
