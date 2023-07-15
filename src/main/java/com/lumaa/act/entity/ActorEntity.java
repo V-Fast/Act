@@ -74,7 +74,7 @@ public class ActorEntity extends ServerPlayerEntity {
     }
     public void checkAndTeleport(PlayerEntity player) {
         // Check if the actor is in the Nether or the End
-        if (this.world.getRegistryKey() == World.OVERWORLD||this.world.getRegistryKey() == World.NETHER || this.world.getRegistryKey() == World.END) {
+        if (this.getWorld().getRegistryKey() == World.OVERWORLD||this.getWorld().getRegistryKey() == World.NETHER || this.getWorld().getRegistryKey() == World.END) {
             // Get the actor's position
             BlockPos actorPos = this.getBlockPos();
             // Search for Nether and End portal blocks in a 2x2x2 area around the actor
@@ -83,7 +83,7 @@ public class ActorEntity extends ServerPlayerEntity {
                 for (int y = -1; y <= 1; y++) {
                     for (int z = -1; z <= 1; z++) {
                         BlockPos pos = actorPos.add(x, y, z);
-                        BlockState state = world.getBlockState(pos);
+                        BlockState state = getWorld().getBlockState(pos);
                         if (state.isOf(Blocks.NETHER_PORTAL) || state.isOf(Blocks.END_PORTAL)) {
                             // Found a Nether or End portal block
                             portalPos = pos;
@@ -92,9 +92,9 @@ public class ActorEntity extends ServerPlayerEntity {
                     }
                 }
             }
-            if (portalPos != null && player.world.getRegistryKey() != this.world.getRegistryKey()) {
+            if (portalPos != null && player.getWorld().getRegistryKey() != this.getWorld().getRegistryKey()) {
                 // There is a portal nearby and the player is in a different dimension, teleport the actor to the player's position
-                ServerWorld targetWorld = this.getServer().getWorld(player.world.getRegistryKey());
+                ServerWorld targetWorld = this.getServer().getWorld(player.getWorld().getRegistryKey());
                 this.teleport(targetWorld, player.getBlockPos());
             }
         }
@@ -164,7 +164,7 @@ public class ActorEntity extends ServerPlayerEntity {
     }
 
     public void teleport(BlockPos pos) {
-        teleport(this.getWorld().toServerWorld(), pos.getX() + 0.5d, pos.getY(), pos.getZ() + 0.5d, 0, 0);
+        teleport(this.getServerWorld(), pos.getX() + 0.5d, pos.getY(), pos.getZ() + 0.5d, 0, 0);
     }
 
     public void teleport(Vec3d movement) {

@@ -32,7 +32,7 @@ public class Pathfinder {
         this.actor = ai.actor;
         this.movement = ai.movement;
         this.action = ai.action;
-        this.world = ai.actor.world;
+        this.world = ai.actor.getWorld();
     }
 
     public void setPositions(BlockPos origin, BlockPos destination) {

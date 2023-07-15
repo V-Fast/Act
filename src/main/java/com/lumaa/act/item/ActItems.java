@@ -1,14 +1,13 @@
 package com.lumaa.act.item;
 
 import com.lumaa.act.ActMod;
-import com.lumaa.act.entity.ActorEntity;
 import com.lumaa.act.item.stick.*;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.item.ItemGroups;
+import net.minecraft.item.*;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.util.Identifier;
 
 import java.util.List;
@@ -20,7 +19,7 @@ public class ActItems {
     public static final Item SPEEDMANAGER_STICK = registerItem("speedmanager_stick", new SpeedManagerStick(new Item.Settings()), ItemGroups.FUNCTIONAL);
 //    public static final Item TEST_STICK = registerItem("test_stick", new TestStick(new Item.Settings()), ItemGroups.OPERATOR);
 
-    public static Item registerItem(String name, Item item, ItemGroup group) {
+    public static Item registerItem(String name, Item item, RegistryKey<ItemGroup> group) {
         Item newItem = Registry.register(Registries.ITEM, new Identifier(ActMod.MODID, name), item);
 
         // put in item group
@@ -30,7 +29,7 @@ public class ActItems {
     }
 
     // can be used for new 1.19.3+ creative inventory system
-    private static Item registerItem(String name, Item item, List<ItemGroup> tabs) {
+    private static Item registerItem(String name, Item item, List<RegistryKey<ItemGroup>> tabs) {
         Item newItem = Registry.register(Registries.ITEM, new Identifier(ActMod.MODID, name), item);
 
         // put in item group

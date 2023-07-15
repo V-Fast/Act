@@ -48,7 +48,7 @@ public class ActorData implements ModInitializer {
                     // Add the actors to the world and send S2C packets
                     for (ActorEntity actor : actors) {
                         Movement.stopMoving(actor);
-                        ServerWorld actorWorld = server.getWorld(actor.world.getRegistryKey());
+                        ServerWorld actorWorld = server.getWorld(actor.getWorld().getRegistryKey());
                         assert actorWorld != null;
                         actor.networkHandler = new ServerPlayNetworkHandler(server, new ClientConnection(NetworkSide.CLIENTBOUND), actor);
                         actor.sendProfileUpdatePacket();
@@ -114,7 +114,7 @@ public class ActorData implements ModInitializer {
             actorNbt.putFloat("Yaw", actor.getYaw());
             actorNbt.putFloat("Health", actor.getHealth());
             actorNbt.putString("World", actor.getWorld().toString());
-            actorNbt.putString("Dimension",actor.world.getRegistryKey().getValue().toString());
+            actorNbt.putString("Dimension",actor.getWorld().getRegistryKey().getValue().toString());
             actorNbt.putString("Name", actor.gameProfile.getName());
             actorNbt.putUuid("UUID", actor.getUuid());
             actorNbt.putBoolean("OnFire",actor.isOnFire());
@@ -175,7 +175,7 @@ public class ActorData implements ModInitializer {
                 actor.setOnFire(onfire);
 
                 //Check for world and Dimension
-                if (!Objects.equals(ActorDimension, actor.world.getRegistryKey().getValue().toString())) continue;
+                if (!Objects.equals(ActorDimension, actor.getWorld().getRegistryKey().getValue().toString())) continue;
 
                 // Load the inventory
                 NbtList inventoryList = actorNtb.getList("Inventory", 10);

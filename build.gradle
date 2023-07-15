@@ -81,7 +81,7 @@ modrinth {
 	versionNumber = project.version // will fail if it already exists
 	versionType = "release" // "alpha" "beta" or "release"
 	uploadFile = remapJar // loom = "remapJar" (else "jar")
-	gameVersions = ["1.19.4"] // array
+	gameVersions = ["1.20","1.20.1"] // array
 	loaders = ["fabric"]
 	dependencies {
 		required.project "fabric-api"
